@@ -1663,3 +1663,35 @@ if __name__ == '__main__':
             print("Usuário ADMIN criado (login: admin, senha: 123456)")
             
     app.run(debug=True)
+
+    # ----------------------------------------------------
+# 13. ROTA TEMPORÁRIA PARA INICIALIZAÇÃO DO BANCO DE DADOS
+#    ESTA ROTA DEVE SER REMOVIDA APÓS O PRIMEIRO USO!
+# ----------------------------------------------------
+@app.route('/initialize_database_secret_route_12345')
+def initialize_database():
+    try:
+        # Importa o modelo Usuario (certifique-se de que o import está correto no topo do app.py)
+        from app import db, Usuario 
+        
+        # Cria a estrutura do banco de dados (tabelas)
+        with app.app_context():
+            db.create_all()
+            
+            # Cria o usuário ADM inicial se ele não existir
+            if not Usuario.query.filter_by(login='admin').first():
+                admin_user = Usuario(nome='Admin Mestre', login='admin', nivel_acesso='ADMIN')
+                # LEMBRE-SE: Sua classe Usuario precisa ter o método set_senha para este trecho funcionar
+                admin_user.set_senha('SenhaDeAcesso123') 
+                db.session.add(admin_user)
+                db.session.commit()
+                
+                # Se tudo der certo, retorna a mensagem de sucesso
+                return "SUCESSO: Tabelas criadas e usuário 'admin' com a senha 'SenhaDeAcesso123' criado! Remova esta rota imediatamente."
+            else:
+                return "Banco de dados já inicializado e Admin já existe. Remova esta rota."
+    
+    except Exception as e:
+        # Se houver qualquer erro, retorna o erro
+        db.session.rollback()
+        return f"ERRO ao inicializar o banco de dados: {e}"
