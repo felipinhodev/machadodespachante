@@ -1,0 +1,9 @@
+Flask
+Flask-SQLAlchemy
+Werkzeug
+# ... suas outras bibliotecas (ex: functools, datetime, etc.)
+
+# NOVAS DEPENDÊNCIAS ESSENCIAIS:
+psycopg2-binary  # Driver do PostgreSQL
+gunicorn       # Servidor web que o Render usará
+python-dotenv  # (Opcional, mas útil para testes locais com variáveis de ambiente)

@@ -15,11 +15,19 @@ from sqlalchemy import func, cast, Date
 app = Flask(__name__)
 # Chave secreta de ambiente (DEVE ser alterada em produção)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'sua_chave_secreta_padrao_muito_segura')
-# Configuração do banco de dados SQLite
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///despachante.db'
+
+# ⭐⭐ TRECHO ALTERADO PARA SUPORTAR POSTGRESQL (NEON) ⭐⭐
+# Tenta usar a variável de ambiente 'DATABASE_URL'. Se não existir, usa o SQLite.
+# O .replace() é essencial para corrigir o esquema de conexão do Neon para o SQLAlchemy/Psycopg2.
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL', 
+    'sqlite:///despachante.db'
+).replace('postgres://', 'postgresql://') 
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # 🚨 LINHA CRÍTICA: Ativa o log de todas as queries SQL no console
+# Mantenha TRUE para desenvolvimento, mas pode desativar (FALSE) em produção para melhor performance.
 app.config['SQLALCHEMY_ECHO'] = True 
 
 db = SQLAlchemy(app)
