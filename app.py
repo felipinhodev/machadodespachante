@@ -40,7 +40,7 @@ class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     login = db.Column(db.String(50), unique=True, nullable=False)
-    senha_hash = db.Column(db.String(128), nullable=False)
+    senha_hash = db.Column(db.String(255), nullable=False)
     nivel_acesso = db.Column(db.String(20), default='COLABORADOR')  # ADMIN, COLABORADOR
 
     def set_senha(self, senha):
