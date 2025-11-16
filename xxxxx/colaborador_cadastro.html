@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro de Colaborador{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h2 class="mb-4 text-center">
+                {% if usuario %}Editar Colaborador{% else %}Cadastro de Novo Colaborador{% endif %}
+            </h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="post" action="{% if usuario %}{{ url_for('colaborador_cadastro', usuario_id=usuario.id) }}{% else %}{{ url_for('colaborador_cadastro') }}{% endif %}">
+                
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome Completo (Obrigatório)</label>
+                    <input type="text" class="form-control" id="nome" name="nome" value="{{ usuario.nome if usuario else '' }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="login" class="form-label">Login (Obrigatório)</label>
+                    <input type="text" class="form-control" id="login" name="login" value="{{ usuario.login if usuario else '' }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="senha" class="form-label">{% if usuario %}Nova Senha{% else %}Senha{% endif %}</label>
+                    <input type="password" class="form-control" id="senha" name="senha" {% if not usuario %}required{% endif %}>
+                    {% if usuario %}
+                        <small class="text-muted">Deixe em branco para manter a senha atual.</small>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="nivel_acesso" class="form-label">Nível de Acesso</label>
+                    <select class="form-select" id="nivel_acesso" name="nivel_acesso">
+                        <option value="COLABORADOR" {% if usuario and usuario.nivel_acesso=='COLABORADOR' %}selected{% endif %}>COLABORADOR</option>
+                        <option value="ADMIN" {% if usuario and usuario.nivel_acesso=='ADMIN' %}selected{% endif %}>ADMIN</option>
+                    </select>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a href="{{ url_for('colaborador_lista') }}" class="btn btn-secondary">
+                        <i class="fas fa-list"></i> Voltar à Lista de Colaboradores
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> {% if usuario %}Atualizar{% else %}Cadastrar{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

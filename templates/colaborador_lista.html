@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Colaboradores{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Colaboradores Cadastrados</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="mb-3">
+        <a href="{{ url_for('colaborador_cadastro') }}" class="btn btn-success">
+            <i class="fas fa-user-plus"></i> Novo Colaborador
+        </a>
+    </div>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Login</th>
+                <th>Nível de Acesso</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.id }}</td>
+                    <td>{{ usuario.nome }}</td>
+                    <td>{{ usuario.login }}</td>
+                    <td>{{ usuario.nivel_acesso }}</td>
+                    <td>
+                        <a href="{{ url_for('colaborador_cadastro', usuario_id=usuario.id) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

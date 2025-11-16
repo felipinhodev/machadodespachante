@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Despesas{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>➖ Relatório de Despesas</h2>
+        <a href="{{ url_for('visualizar_caixa') }}" class="btn btn-secondary">
+            🔙 Voltar para o Caixa
+        </a>
+    </div>
+
+    <div class="card text-white bg-danger mb-4">
+        <div class="card-header">Resumo do Período Filtrado</div>
+        <div class="card-body">
+            <h5 class="card-title">Total de Despesas:</h5>
+            <p class="card-text fs-3 fw-bold">R$ {{ total_despesas | moeda }}</p> 
+        </div>
+    </div>
+    
+    <h4 class="mb-3">Filtros Aplicados</h4>
+    <form method="GET" action="{{ url_for('relatorio_despesas') }}" class="mb-5 p-3 border rounded bg-light">
+        <div class="row g-3">
+            
+            <div class="col-md-4">
+                <label for="data_inicio" class="form-label">Data Início:</label>
+                <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
+                       value="{{ selected_data_inicio or '' }}">
+            </div>
+            
+            <div class="col-md-4">
+                <label for="data_fim" class="form-label">Data Fim:</label>
+                <input type="date" class="form-control" id="data_fim" name="data_fim" 
+                       value="{{ selected_data_fim or '' }}">
+            </div>
+
+            <div class="col-md-4">
+                <label for="categoria" class="form-label">Categoria:</label>
+                <select class="form-select" id="categoria" name="categoria">
+                    <option value="">Todas as Categorias</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat }}" 
+                                {% if cat == selected_categoria %}selected{% endif %}>
+                            {{ cat }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+            <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+        </div>
+    </form>
+    
+    <hr>
+    
+    <h4>Lista de Despesas</h4>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th class="text-end">Valor (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for despesa in despesas %}
+                <tr>
+                    <td>{{ despesa.id }}</td>
+                    <td>{{ despesa.data | to_date }}</td>
+                    <td>{{ despesa.descricao }}</td>
+                    <td><span class="badge bg-danger">{{ despesa.categoria }}</span></td>
+                    <td class="text-end fw-bold">R$ {{ despesa.valor | moeda }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">Nenhuma despesa encontrada para os filtros aplicados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro de Novo Serviço | Despachante RS{% endblock %}
+
+{% block content %}
+    <style>
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Duas colunas para formulário */
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1; /* Ocupa as duas colunas */
+        }
+
+        .section-separator {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: var(--cor-primaria);
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 5px;
+        }
+    </style>
+
+    <h1>🆕 Cadastro de Novo Serviço</h1>
+    <p>Preencha os dados básicos para iniciar o registro de um novo serviço.</p>
+
+    <form method="POST">
+        <div class="form-grid">
+            
+            <div class="section-separator">Informações do Cliente e Serviço</div>
+
+            <div class="filter-group">
+                <label for="cliente_id">Cliente <span style="color: red;">*</span></label>
+                <select id="cliente_id" name="cliente_id" required>
+                    <option value="" disabled selected>Selecione um Cliente</option>
+                    {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}">{{ cliente.nome }} ({{ cliente.cpf_cnpj }})</option>
+                    {% endfor %}
+                </select>
+                {% if clientes|length == 0 %}
+                    <p style="color: var(--cor-erro); margin-top: 10px;">⚠️ Nenhum cliente cadastrado. Cadastre um cliente primeiro!</p>
+                {% endif %}
+                <small style="margin-top: 5px; display: block;">
+                    <a href="{{ url_for('cliente_cadastro') }}" style="color: var(--cor-primaria); text-decoration: none;">
+                        <i class="fas fa-user-plus"></i> Cadastrar Novo Cliente
+                    </a>
+                </small>
+            </div>
+
+            <div class="filter-group">
+                <label for="tipo_servico">Tipo de Serviço <span style="color: red;">*</span></label>
+                <input type="text" id="tipo_servico" name="tipo_servico" placeholder="Ex: Transferência, 1º Emplacamento, Baixa" required>
+            </div>
+
+            <div class="filter-group">
+                <label for="data_entrada">Data de Entrada <span style="color: red;">*</span></label>
+                <input type="date" id="data_entrada" name="data_entrada" value="{{ today }}" required>
+            </div>
+            
+            <div class="filter-group">
+                <label for="data_vencimento">Data Estimada de Conclusão (Opcional)</label>
+                <input type="date" id="data_vencimento" name="data_vencimento">
+            </div>
+
+            <div class="section-separator">Dados Financeiros</div>
+
+            <div class="filter-group">
+                <label for="valor_total">Valor Total do Serviço (R$) <span style="color: red;">*</span></label>
+                <input type="number" id="valor_total" name="valor_total" step="0.01" min="0" value="0.00" required>
+                <small style="color: #6c757d;">Este valor será o saldo pendente inicial.</small>
+            </div>
+            
+            <div class="filter-group">
+                <label for="valor_recebido_inicial">Valor Recebido no Início (Opcional)</label>
+                <input type="number" id="valor_recebido_inicial" name="valor_recebido_inicial" step="0.01" min="0" value="0.00">
+                <small style="color: #6c757d;">Recomendamos registrar pagamentos na tela seguinte.</small>
+            </div>
+
+            <div class="filter-group full-width">
+                <label for="detalhes">Detalhes / Observações Iniciais</label>
+                <textarea id="detalhes" name="detalhes" rows="4" placeholder="Descreva os documentos recebidos e o que precisa ser feito."></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Iniciar Serviço e Ir para Detalhes</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">← Voltar ao Menu Principal</a>
+    </form>
+
+{% endblock %}

@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Visualizar Caixa e Fluxo Financeiro{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    h2, h3 {
+        color: #ffffff;
+    }
+
+    .content-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .finance-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
+
+    .action-buttons a {
+        margin-left: 10px;
+        padding: 8px 15px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+        color: #fff;
+        background-color: #6c757d;
+    }
+
+    .action-buttons a:last-child {
+        background-color: #e74c3c;
+    }
+
+    .action-buttons a:hover {
+        opacity: 0.9;
+    }
+
+    .saldo-box {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .saldo-box h3 {
+        margin-top: 0;
+        color: #ffffff;
+        font-size: 1.2em;
+    }
+
+    .saldo-value {
+        font-size: 2em;
+        font-weight: bold;
+    }
+
+    .saldo-positivo {
+        color: #28a745;
+    }
+
+    .saldo-negativo {
+        color: #e74c3c;
+    }
+
+    .saldo-zero {
+        color: #ffc107;
+    }
+
+    .entrada-value {
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .saida-value {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+
+    /* --- Layout de filtros horizontal --- */
+    .filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-end;
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background-color: #1e1e1e;
+    }
+
+    .filter-form label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: #e0e0e0;
+    }
+
+    .filter-form input[type="date"],
+    .filter-form input[type="submit"] {
+        background-color: #222;
+        color: #e0e0e0;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 8px;
+    }
+
+    .filter-form input[type="submit"] {
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+        font-weight: 500;
+    }
+
+    .filter-form input[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    .filter-form .back-link {
+        color: #ffc107;
+        text-decoration: none;
+        font-weight: 500;
+        margin-left: 10px;
+    }
+
+    .filter-form .back-link:hover {
+        text-decoration: underline;
+    }
+
+    /* --- Tabela de extrato --- */
+    .table-responsive {
+        overflow-x: auto;
+        max-height: 600px;
+    }
+
+    .extrato-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #1b1b1b;
+        color: #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .extrato-table th, .extrato-table td {
+        border: 1px solid #333;
+        padding: 10px;
+        text-align: left;
+        font-size: 0.9em;
+    }
+
+    .extrato-table th {
+        background-color: #272727;
+        font-weight: 600;
+    }
+
+    .extrato-table tr:nth-child(even) {
+        background-color: #1f1f1f;
+    }
+
+    .entrada-row {
+        background-color: #1f3d1f;
+    }
+
+    .saida-row {
+        background-color: #3d1f1f;
+    }
+
+    .valor-cell {
+        text-align: right;
+    }
+
+</style>
+
+<div class="content-container">
+
+    <div class="finance-header">
+        <h2>💵 Fluxo de Caixa Diário / Mês</h2>
+        <div class="action-buttons">
+            <a href="{{ url_for('index') }}">🔙 Menu Principal</a>
+            <a href="{{ url_for('despesa_form') }}">➖ Registrar Despesa Avulsa</a>
+        </div>
+    </div>
+
+    {% set saldo_geral = total_entradas - total_despesas %}
+    {% set saldo_class = 'saldo-positivo' if saldo_geral > 0 else ('saldo-negativo' if saldo_geral < 0 else 'saldo-zero') %}
+
+    <div class="saldo-box">
+        <h3>Saldo Atual (Entradas de Serviços + Despesas Avulsas)</h3>
+        <span class="saldo-value {{ saldo_class }}">{{ saldo_geral | moeda }}</span>
+        <p style="margin-top: 10px; font-size: 0.9em;">
+            Total Entradas: <span class="entrada-value">{{ total_entradas | moeda }}</span> |
+            Total Despesas: <span class="saida-value">{{ total_despesas | moeda }}</span>
+        </p>
+    </div>
+
+    <!-- Filtro de Datas (agora no layout escuro e horizontal) -->
+    <form method="get" class="filter-form">
+        <div class="filter-group">
+            <label for="start_date">Data Início:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date if start_date else '' }}">
+        </div>
+        <div class="filter-group">
+            <label for="end_date">Data Fim:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date if end_date else '' }}">
+        </div>
+        <div class="filter-group">
+            <input type="submit" value="Aplicar Filtro">
+            <a href="{{ url_for('visualizar_caixa') }}" class="back-link">Limpar Filtro</a>
+        </div>
+    </form>
+
+    {% if extrato %}
+    <div class="table-responsive">
+        <table class="extrato-table table-hover">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Descrição / Serviço</th>
+                    <th>Valor (R$)</th>
+                    <th>Categoria</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in extrato %}
+                {% set is_entrada = item.tipo == 'ENTRADA' %}
+                <tr class="{{ 'entrada-row' if is_entrada else 'saida-row' }}">
+                    <td>{{ item.data | to_date }}</td>
+                    <td>{{ item.tipo }}</td>
+                    <td>{{ item.descricao }}</td>
+                    <td class="valor-cell {{ 'entrada-value' if is_entrada else 'saida-value' }}">
+                        {% if not is_entrada %}-{% endif %}{{ item.valor | moeda }}
+                    </td>
+                    <td>{{ item.categoria }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p style="margin-top: 30px;">Nenhuma movimentação encontrada para o período selecionado.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

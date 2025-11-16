@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Atualizar Status - Serviço #{{ servico.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .content-container { max-width: 800px; margin: 40px auto; background-color: transparent; padding: 0; }
+    h1 { color: var(--cor-primaria); margin-bottom: 15px; font-weight: 600; }
+    .alert { border-radius: 6px; padding: 12px 18px; margin-bottom: 15px; font-weight: 500; }
+    .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .service-info, .form-section { border: 1px solid var(--cor-borda); border-radius: 6px; padding: 20px; margin-bottom: 25px; background-color: var(--cor-container); }
+    .service-info p { margin: 8px 0; font-size: 1em; }
+    .service-info strong { color: var(--cor-primaria); font-weight: 700; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .info-item { background-color: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 6px; }
+    .info-label { font-size: 0.85em; color: var(--cor-texto-secundario); text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-value { font-size: 1.1em; font-weight: 600; color: var(--cor-texto); margin-top: 4px; }
+    .form-grid { display: grid; gap: 20px; }
+    select, textarea { width: 100%; padding: 12px; border: 1px solid var(--cor-borda); border-radius: 6px; transition: border-color 0.2s; background-color: #1a1a1a; color: var(--cor-texto); }
+    select:focus, textarea:focus { border-color: var(--cor-primaria); outline: none; }
+    .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; flex-wrap: wrap; gap: 15px; }
+    .current-status { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    
+    @media (max-width: 768px) {
+        .info-grid { grid-template-columns: 1fr; }
+        .form-actions { flex-direction: column; align-items: stretch; }
+        .form-actions .btn { width: 100%; }
+    }
+</style>
+
+<div class="content-container">
+    <h1>📋 Atualizar Status - Serviço #{{ servico.id }}</h1>
+    <p>Atualize o status do processo e adicione observações sobre o andamento do serviço.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- INFORMAÇÕES DO SERVIÇO (SOMENTE LEITURA) -->
+    <div class="service-info">
+        <h3><i class="fas fa-info-circle"></i> Informações do Serviço</h3>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Cliente</div>
+                <div class="info-value">{{ cliente.nome if cliente else "Cliente Não Informado" }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">CPF/CNPJ</div>
+                <div class="info-value">{{ cliente.cpf_cnpj if cliente else "N/A" }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Tipo de Serviço</div>
+                <div class="info-value">{{ servico.tipo_servico }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Valor Total</div>
+                <div class="info-value">R$ {{ '%.2f' | format(servico.valor_total or 0) | replace('.', ',') }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Data de Abertura</div>
+                <div class="info-value">{{ servico.data_servico.strftime('%d/%m/%Y') if servico.data_servico else "N/A" }}</div>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-label">Placa do Veículo</div>
+                <div class="info-value">{{ servico.placa_veiculo or "N/A" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULÁRIO DE ATUALIZAÇÃO -->
+    <form method="post" action="{{ url_for('atualizar_status_servico', servico_id=servico.id) }}" id="form_status">
+        <div class="form-section">
+            <h3><i class="fas fa-edit"></i> Atualização de Status e Observações</h3>
+
+            <div class="form-grid">
+                <div>
+                    <label for="status_processo"><strong>Status do Processo:</strong></label>
+                    <div class="current-status">
+                        <span>Status atual:</span>
+                        {% set status_class = servico.status_processo.lower().replace(' ', '-') %}
+                        <span class="status-badge status-{{ status_class }}">{{ servico.status_processo }}</span>
+                    </div>
+                    <select id="status_processo" name="status_processo" required>
+                        {% for opcao in status_opcoes %}
+                            <option value="{{ opcao }}" {% if servico.status_processo == opcao %}selected{% endif %}>{{ opcao }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="detalhes"><strong>Detalhes / Observações:</strong></label>
+                    <textarea id="detalhes" name="detalhes" rows="6" placeholder="Adicione observações sobre o andamento do serviço, documentos recebidos, próximos passos, etc.">{{ servico.detalhes or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('servicos_filtros') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar para a Lista
+            </a>
+            <button type="submit" class="btn btn-primary" id="salvar_status">
+                <i class="fas fa-save"></i> Atualizar Status
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form_status');
+    const statusSelect = document.getElementById('status_processo');
+    const detalhesTextarea = document.getElementById('detalhes');
+    
+    // Destacar mudanças no status
+    statusSelect.addEventListener('change', function() {
+        if (this.value !== '{{ servico.status_processo }}') {
+            this.style.borderColor = '#ffc107';
+            this.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
+        } else {
+            this.style.borderColor = '';
+            this.style.backgroundColor = '';
+        }
+    });
+    
+    // Auto-resize do textarea
+    detalhesTextarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+});
+</script>
+{% endblock %}

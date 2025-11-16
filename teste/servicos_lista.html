@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Serviços (Cobrança)</title>
+    <style>
+        /* Estilos para o Status de Pagamento */
+        .status-pago { color: green; font-weight: bold; }
+        .status-parcial { color: orange; font-weight: bold; }
+        .status-areceber { color: red; font-weight: bold; }
+        
+        /* Estilo para Linhas Atrasadas */
+        .atrasado { background-color: #ffe0e0; border-left: 5px solid red; } 
+
+        /* Estilos de Layout */
+        table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+
+        /* Estilos para o Resumo Rápido */
+        .resumo-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+        .resumo-box { 
+            border: 1px solid #ccc; 
+            padding: 15px; 
+            flex: 1; 
+            border-radius: 5px;
+        }
+        .resumo-box.pendente { border-color: red; }
+        .resumo-box h4 { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <h2>🚗 Serviços e Status de Cobrança</h2>
+
+    <div class="resumo-container">
+        <div class="resumo-box pendente">
+            <h4>💰 Saldo Total A Receber</h4>
+            <p style="font-size: 1.5em; color: red;">R$ <strong>{{ "%.2f"|format(total_recebido_bruto) }}</strong></p> 
+        </div>
+        <div class="resumo-box">
+            <h4>🔴 Clientes com Débito</h4>
+            <p style="font-size: 1.5em;"><strong>{{ clientes_debito }}</strong></p>
+        </div>
+        <div class="resumo-box">
+            <h4>🟡 Pagamentos Parciais</h4>
+            <p style="font-size: 1.5em;"><strong>{{ pagamentos_parciais }}</strong></p>
+        </div>
+    </div>
+    
+    <p>
+        <a href="{{ url_for('registrar_servico') }}">➕ Novo Serviço para Cobrança</a> | 
+        <a href="{{ url_for('index') }}">🏠 Menu Principal</a>
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul style="list-style-type: none; padding: 10px; border: 1px solid #ccc; background-color: #f0f0f0;">
+            {% for category, message in messages %}
+                <li style="color: {% if category == 'error' %}red{% elif category == 'success' %}green{% elif category == 'info' %}blue{% else %}black{% endif %};">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente / Serviço</th>
+                <th>Valor Total</th>
+                <th>Valor Recebido</th>
+                <th>Saldo Pendente</th>
+                <th>Vencimento</th>
+                <th>Status Pagamento</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for servico in servicos %}
+            {% set saldo_pendente = servico.valor_total - servico.valor_recebido %}
+            
+            {% set data_vencimento = servico.data_vencimento|to_date %}
+            {% set hoje = today() %}
+
+            <tr class="{% if servico.status_pagamento != 'PAGO' and data_vencimento and data_vencimento < hoje %}atrasado{% endif %}">
+                <td>{{ servico.id }}</td>
+                <td>
+                    <strong>{{ servico.cliente }}</strong><br>
+                    <small>{{ servico.tipo_servico }}</small>
+                </td>
+                <td>R$ {{ "%.2f"|format(servico.valor_total or 0.00) }}</td>
+                <td>R$ {{ "%.2f"|format(servico.valor_recebido or 0.00) }}</td>
+                <td>
+                    <strong style="color: {% if saldo_pendente > 0 %}red{% else %}green{% endif %};">
+                        R$ {{ "%.2f"|format(saldo_pendente or 0.00) }}
+                    </strong>
+                </td>
+                <td>
+                    {{ servico.data_vencimento }}
+                    {% if servico.status_pagamento != 'PAGO' and data_vencimento and data_vencimento < hoje %}
+                        <strong style="color:red; margin-left: 5px;">🚨</strong>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="status-{{ servico.status_pagamento.lower().replace(' ', '') }}">
+                        {{ servico.status_pagamento }}
+                    </span>
+                </td>
+                <td>
+                    {% if servico.status_pagamento != 'PAGO' %}
+                        <a href="{{ url_for('processar_pagamento', servico_id=servico.id) }}" style="color:blue; margin-right: 10px;">
+                            💵 Registrar Pagamento
+                        </a>
+                    {% else %}
+                        <span style="color:green;">Liquidado</span>
+                    {% endif %}
+                    
+                    | 
+                    
+                    <a href="{{ url_for('atualizar_status_servico', servico_id=servico.id) }}" style="color:gray; margin-left: 10px;">
+                        (Processo)
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align: center;">Nenhum serviço registrado para cobrança. Use o botão acima para adicionar!</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

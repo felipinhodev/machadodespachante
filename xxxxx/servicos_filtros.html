@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Pesquisa Avançada de Serviços | Despachante RS{% endblock %}
+
+{% block content %}
+<style>
+    /* ======== ESTILO GERAL (DARK DASHBOARD) ======== */
+    body {
+        background-color: #121212;
+        color: #f0f0f0;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    h1, h2 {
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 10px;
+    }
+
+    p {
+        color: #b0b0b0;
+    }
+
+    a, button, select, input {
+        font-family: inherit;
+    }
+
+    /* ======== CONTAINER ======== */
+    .dashboard-container {
+        background-color: #1e1e1e;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    /* ======== BOTÕES ======== */
+    .btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn:hover {
+        transform: scale(1.03);
+    }
+
+    .btn-primary { background-color: #007bff; color: #fff; }
+    .btn-secondary { background-color: #6c757d; color: #fff; }
+    .btn-danger { background-color: #dc3545; color: #fff; }
+    .btn-primary:hover { background-color: #0056b3; }
+    .btn-secondary:hover { background-color: #565e64; }
+    .btn-danger:hover { background-color: #c82333; }
+
+    /* ======== FORMULÁRIO DE FILTROS ======== */
+    .filter-form {
+        background-color: #2b2b2b;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+    }
+
+    .filter-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1 1 200px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: block;
+        color: #ddd;
+    }
+
+    .filter-group select,
+    .filter-group input[type="text"],
+    .filter-group input[type="date"] {
+        width: 100%;
+        padding: 8px 10px;
+        background-color: #1c1c1c;
+        border: 1px solid #333;
+        border-radius: 6px;
+        color: #e0e0e0;
+    }
+
+    .filter-group input::placeholder {
+        color: #777;
+    }
+
+    .btn-pesquisar {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        height: 38px;
+    }
+
+    .btn-pesquisar:hover {
+        background-color: #0056b3;
+    }
+
+    /* ======== TABELA ======== */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .servicos-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 0.9em;
+    }
+
+    .servicos-table th, .servicos-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+    }
+
+    .servicos-table th {
+        background-color: #2a2a2a;
+        color: #f0f0f0;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 0.85em;
+    }
+
+    .servicos-table tr:hover {
+        background-color: #1a1a1a;
+    }
+
+    /* ======== STATUS BADGES ======== */
+    .status-badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 0.75em;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .status-pendente { background-color: #5c4300; color: #ffdb70; }
+    .status-em-andamento { background-color: #003366; color: #cce0ff; }
+    .status-aguardando-retirada { background-color: #005662; color: #b2faff; }
+    .status-concluido { background-color: #0f3d1e; color: #9ef5b3; }
+    .status-cancelado { background-color: #333; color: #ccc; }
+
+    .pagamento-a-cobrar { background-color: #7a1a1a; color: #ffbdbd; }
+    .pagamento-parcial { background-color: #5c4300; color: #ffdb70; }
+    .pagamento-pago { background-color: #0f3d1e; color: #9ef5b3; }
+    .pagamento-nao-cobrado { background-color: #444; color: #bbb; }
+
+    /* ======== LINKS DE AÇÃO ======== */
+    .actions-cell {
+        white-space: nowrap;
+    }
+
+    .actions-cell a,
+    .actions-cell button {
+        text-decoration: none;
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        margin-right: 5px;
+        font-size: 0.85em;
+    }
+
+    .btn-edit {
+        background-color: #2a2a2a;
+        color: #00bcd4;
+        border: none;
+    }
+
+    .btn-edit:hover {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .btn-delete {
+        background-color: #2a2a2a;
+        color: #ff6b6b;
+        border: none;
+    }
+
+    .btn-delete:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    /* ======== RESPONSIVIDADE ======== */
+    @media (max-width: 768px) {
+        .filter-grid {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary" style="margin-bottom: 20px;">
+        ← Voltar ao Menu Principal
+    </a>
+
+    <h1>🔎 Pesquisa e Filtro de Serviços</h1>
+    <p>Utilize os filtros abaixo para refinar sua busca.</p>
+
+    <form method="GET" class="filter-form">
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label for="status">Status do Processo</label>
+                <select id="status" name="status">
+                    <option value="todos" {% if filtro_status == 'todos' %}selected{% endif %}>Todos os Status</option>
+                    {% for status in status_opcoes %}
+                        <option value="{{ status }}" {% if filtro_status == status %}selected{% endif %}>{{ status }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="cliente">Cliente</label>
+                <select id="cliente" name="cliente">
+                    <option value="">Todos os Clientes</option>
+                    {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}" {% if filtro_cliente and filtro_cliente | int == cliente.id %}selected{% endif %}>{{ cliente.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="placa">Placa do Veículo</label>
+                <input type="text" id="placa" name="placa" value="{{ filtro_placa }}" placeholder="Ex: ABC1234">
+            </div>
+
+            <div class="filter-group">
+                <label for="data_servico">Data do Serviço (De)</label>
+                <input type="date" id="data_servico" name="data_servico" value="{{ filtro_data_servico }}">
+            </div>
+            
+            <div class="filter-group">
+                <label for="data_fim">Data Final (Até)</label>
+                <input type="date" id="data_fim" name="data_fim" value="{{ filtro_data_fim }}">
+            </div>
+
+            <div class="filter-group" style="flex: 0 0 auto;">
+                <button type="submit" class="btn btn-primary btn-pesquisar">Pesquisar</button>
+            </div>
+        </div>
+    </form>
+
+    <h2>Resultados Encontrados ({{ servicos | length }} Serviços)</h2>
+    
+    {% if servicos %}
+        <div class="table-responsive">
+            <table class="servicos-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Tipo de Serviço</th>
+                        <th>Data Serviço</th>
+                        <th>Saldo Pendente</th>
+                        <th>Status Processo</th>
+                        <th>Status Pagamento</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for servico in servicos %}
+                    <tr>
+                        <td>{{ servico.id }}</td>
+                        <td>{{ servico.cliente }}</td>
+                        <td>{{ servico.tipo_servico }}</td>
+                        <td>{{ servico.data_servico | to_date }}</td>
+                        <td>
+                            <span style="font-weight:700; color:{% if servico.saldo_pendente > 0 %}#ff6b6b{% else %}#9ef5b3{% endif %}">
+                                {{ servico.saldo_pendente | moeda }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ servico.status_processo.lower().replace(' ', '-') }}">
+                                {{ servico.status_processo }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge pagamento-{{ servico.status_pagamento.lower().replace(' ', '-').replace('ã', 'a') }}">
+                                {{ servico.status_pagamento }}
+                            </span>
+                        </td>
+                        <td class="actions-cell">
+                            <a href="{{ url_for('atualizar_status_servico', servico_id=servico.id) }}" class="btn-edit">✏️ Editar</a>
+                            <form method="POST" 
+                                  action="{{ url_for('excluir_servico', servico_id=servico.id) }}" 
+                                  style="display: inline;"
+                                  onsubmit="return confirm('⚠️ ATENÇÃO!\n\nTem certeza que deseja excluir este serviço?\n\n• Todos os dados serão perdidos\n• Esta ação não pode ser desfeita\n\nDeseja continuar?')">
+                                <button type="submit" class="btn-delete">🗑️ Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align:center; margin-top:40px;">Nenhum serviço encontrado com os filtros aplicados.</p>
+    {% endif %}
+</div>
+{% endblock %}

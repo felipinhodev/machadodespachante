@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Despesa Avulsa{% endblock %}
+
+{% block content %}
+<style>
+    /* Container principal */
+    .content-container { 
+        max-width: 600px; 
+        margin: 40px auto; 
+        padding: 20px; 
+        background-color: rgba(255, 255, 255, 0.05); /* Transparente, leve */
+        border-radius: 6px;
+    }
+
+    /* Títulos */
+    h2 { 
+        color: var(--cor-erro);
+        border-bottom: 2px solid var(--cor-erro);
+        padding-bottom: 5px;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    /* Estilo das estrelas de obrigatoriedade */
+    .required-star { color: var(--cor-erro); }
+
+    /* Formulário */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { font-weight: 500; margin-bottom: 5px; display: block; }
+    input[type="text"], input[type="date"], select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1em;
+        transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+        border-color: var(--cor-primaria);
+        outline: none;
+    }
+    .text-muted { font-size: 0.85em; color: #6c757d; }
+
+    /* Botões e links */
+    .form-actions {
+        margin-top: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .submit-despesa-btn { 
+        background-color: var(--cor-erro); 
+        color: white; 
+        padding: 10px 25px; 
+        border-radius: 6px; 
+        font-weight: 500; 
+        border: none; 
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .submit-despesa-btn:hover { background-color: #a80017; }
+    .back-link { 
+        color: var(--cor-primaria); 
+        text-decoration: none; 
+        font-weight: 500; 
+        padding: 10px 15px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+    .back-link:hover { background-color: rgba(0,0,0,0.05); }
+</style>
+
+<div class="content-container">
+    <h2>➖ Registrar Nova Despesa Avulsa</h2>
+    <p>Use esta seção para registrar saídas de caixa que não estão vinculadas diretamente a um serviço (Ex: aluguel, luz, gasolina).</p>
+    
+    <form method="post" action="{{ url_for('despesa_form') }}">
+        <div class="form-group">
+            <label for="descricao">Descrição da Despesa <span class="required-star">*</span>:</label>
+            <input type="text" id="descricao" name="descricao" required autofocus placeholder="Ex: Pagamento de Aluguel, Compra de Material de Escritório" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="valor">Valor da Despesa (R$) <span class="required-star">*</span>:</label>
+            <input type="text" id="valor" name="valor" required placeholder="0,00" class="form-control currency-input">
+            <small class="text-muted">Use vírgula (,) para separar centavos.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="data_pagamento">Data do Pagamento <span class="required-star">*</span>:</label>
+            <input type="date" id="data_pagamento" name="data_pagamento" value="{{ today if today else '' }}" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="categoria">Categoria da Despesa:</label>
+            <select id="categoria" name="categoria" class="form-control">
+                <option value="OPERACIONAL">Operacional (Aluguel, Luz, Internet)</option>
+                <option value="IMPOSTO">Imposto/Taxa</option>
+                <option value="COMISSAO">Comissão/Salário</option>
+                <option value="MATERIAIS">Materiais/Insumos</option>
+                <option value="OUTROS">Outros</option>
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <input type="submit" value="Salvar Despesa (Saída de Caixa)" class="submit-despesa-btn">
+            <a href="{{ url_for('visualizar_caixa') }}" class="back-link">🔙 Voltar para o Caixa</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

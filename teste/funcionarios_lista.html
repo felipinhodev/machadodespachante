@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Funcionários</title>
+    <style>
+        table { border-collapse: collapse; }
+        th, td { padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h2>📋 Funcionários Registrados</h2>
+    <p>
+        <a href="{{ url_for('cadastro_colaborador') }}">➕ Novo Colaborador (ADMIN)</a> | 
+        <a href="{{ url_for('index') }}">🏠 Menu Principal</a>
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul style="list-style-type: none; padding: 10px; border: 1px solid #ccc;">
+            {% for category, message in messages %}
+                <li style="color: {% if category == 'error' %}red{% elif category == 'success' %}green{% else %}black{% endif %};">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <table border="1" width="100%">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Cargo</th>
+                <th>Salário Mensal</th>
+                <th>Ações</th> 
+            </tr>
+        </thead>
+        <tbody>
+            {% for funcionario in funcionarios %}
+            <tr>
+                <td>{{ funcionario.id }}</td>
+                <td>{{ funcionario.nome }}</td>
+                <td>{{ funcionario.cargo }}</td>
+                <td>R$ {{ "%.2f"|format(funcionario.salario_mensal or 0.00) }}</td>
+                <td>
+                    <a href="{{ url_for('editar_funcionario', funcionario_id=funcionario.id) }}">✏️ Editar</a>
+                    
+                    | 
+                    
+                    <form method="POST" action="{{ url_for('excluir_funcionario', funcionario_id=funcionario.id) }}" 
+                          style="display:inline;" onsubmit="return confirm('ATENÇÃO: Tem certeza que deseja excluir o funcionário {{ funcionario.nome }}? Esta ação é irreversível.');">
+                        <button type="submit" style="color:red; background:none; border:none; cursor:pointer;">
+                            🗑️ Excluir
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center;">Nenhum funcionário cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Pagamento</title>
+    <style>
+        .resumo {
+            border: 2px solid #0056b3;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #e6f7ff;
+            border-radius: 5px;
+        }
+        .resumo h3 { margin-top: 0; color: #0056b3; }
+        .resumo p { margin: 5px 0; }
+        
+        .valor-pendente { 
+            font-size: 1.5em; 
+            color: red; 
+            font-weight: bold; 
+        }
+        
+        form label { font-weight: bold; display: block; margin-top: 10px; }
+        form input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            font-size: 1.1em;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h2>💵 Registrar Pagamento para Serviço ID {{ servico.id }}</h2>
+    <p>Área restrita a usuários com permissão financeira.</p>
+    
+    <div class="resumo">
+        <h3>Detalhes Financeiros</h3>
+        <p><strong>Cliente:</strong> {{ servico.cliente }}</p>
+        <p><strong>Valor Total:</strong> R$ {{ "%.2f"|format(servico.valor_total) }}</p>
+        <p><strong>Valor Recebido Anteriormente:</strong> R$ {{ "%.2f"|format(servico.valor_recebido) }}</p>
+        <p><strong>Status Atual:</strong> <span style="font-weight: bold; color: {% if servico.status_pagamento == 'A RECEBER' %}red{% elif servico.status_pagamento == 'PARCIAL' %}orange{% else %}gray{% endif %};">{{ servico.status_pagamento }}</span></p>
+        <hr>
+        <p><strong>SALDO PENDENTE:</strong> <span class="valor-pendente">R$ {{ "%.2f"|format(saldo_pendente) }}</span></p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul style="list-style-type: none; padding: 10px; border: 1px solid #ccc; background-color: #f0f0f0;">
+            {% for category, message in messages %}
+                <li style="color: {% if category == 'error' %}red{% elif category == 'success' %}green{% else %}black{% endif %};">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        
+        <label for="valor_pagamento">Valor a ser Registrado (R$): <span style="color: red;">*</span></label>
+        <input type="text" id="valor_pagamento" name="valor_pagamento" 
+               placeholder="{{ 'Insira até R$ %.2f'|format(saldo_pendente) }}" required><br><br>
+        
+        <input type="submit" value="Confirmar Recebimento e Atualizar Caixa" 
+               style="padding: 12px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1em;">
+    </form>
+    
+    <p><a href="{{ url_for('visualizar_servicos') }}">🔙 Voltar para a Lista de Serviços</a></p>
+</body>
+</html>

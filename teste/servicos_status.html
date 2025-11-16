@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Atualizar Status</title>
+</head>
+<body>
+    <h2>📝 Atualizar Status do Serviço ID {{ servico.id }}</h2>
+    
+    <p>Cliente: <strong>{{ servico.cliente }}</strong></p>
+    <p>Tipo: <strong>{{ servico.tipo_servico }}</strong></p>
+    <p>Status Atual: **{{ servico.status }}**</p>
+    
+    <hr>
+    
+    <form method="post">
+        <label for="novo_status">Selecione o Novo Status:</label><br>
+        <select id="novo_status" name="novo_status" required>
+            {% for status in status_opcoes %}
+                <option value="{{ status }}" {% if status == servico.status %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+        </select><br><br>
+        
+        <input type="submit" value="Confirmar Mudança de Status">
+    </form>
+    
+    <p><a href="{{ url_for('visualizar_servicos') }}">🔙 Voltar para a Lista de Serviços</a></p>
+</body>
+</html>

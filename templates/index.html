@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Despachante RS{% endblock %}
+
+{% block content %}
+<style>
+    /* Faz a imagem ocupar grande parte da tela abaixo do menu */
+    body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+    }
+
+    .hero-image {
+        position: relative;
+        width: 100%;
+        height: calc(70vh - 60px); /* Altura total menos a barra do topo */
+        background-image: url('{{ url_for("static", filename="logo_machado.jpg") }}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        justify-content: center; /* centraliza os botões horizontalmente */
+        align-items: flex-start; /* mantém próximo do topo */
+        padding-top: 20px; /* distância do topo da barra */
+    }
+
+    .top-bar {
+        display: flex;
+        gap: 20px; /* espaçamento entre os botões */
+    }
+
+    .dashboard-btn {
+        padding: 10px 20px;
+        font-size: 1em;
+        font-weight: 500;
+        text-decoration: none;
+        color: white;
+        background-color: var(--cor-primaria);
+        border-radius: 8px;
+        transition: 0.2s;
+    }
+
+    .dashboard-btn:hover {
+        background-color: #1a73e8;
+    }
+</style>
+
+<div class="hero-image">
+     </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Clientes</title>
+    <style>
+        table { border-collapse: collapse; width: 80%; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>👥 Lista de Clientes Cadastrados</h2>
+    
+    <p>
+        <a href="{{ url_for('cadastro_cliente') }}">➕ Novo Cliente</a> | 
+        <a href="{{ url_for('visualizar_servicos') }}">📑 Ir para Serviços</a> |
+        <a href="{{ url_for('index') }}">🏠 Menu Principal</a>
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul style="list-style-type: none; padding: 10px; border: 1px solid #ccc; background-color: #f0f0f0;">
+            {% for category, message in messages %}
+                <li style="color: {% if category == 'error' %}red{% elif category == 'success' %}green{% else %}black{% endif %};">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome / Razão Social</th>
+                <th>CPF/CNPJ</th>
+                <th>Contato</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+            <tr>
+                <td>{{ cliente.id }}</td>
+                <td><strong>{{ cliente.nome }}</strong></td>
+                <td>{{ cliente.cpf_cnpj or 'N/A' }}</td>
+                <td>
+                    Tel: {{ cliente.telefone or 'N/A' }}<br>
+                    Email: {{ cliente.email or 'N/A' }}
+                </td>
+                <td>
+                    <a href="{{ url_for('editar_cliente', cliente_id=cliente.id) }}" style="color: blue;">✏️ Editar</a>
+                    
+                    </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center;">Nenhum cliente cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

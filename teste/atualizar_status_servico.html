@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Serviço #{{ servico.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .content-container { max-width: 1000px; margin: 40px auto; background-color: transparent; padding: 0; }
+    h1 { color: var(--cor-primaria-escura); margin-bottom: 15px; font-weight: 600; }
+    .alert { border-radius: 6px; padding: 12px 18px; margin-bottom: 15px; font-weight: 500; }
+    .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .status-badge { font-weight: bold; border-radius: 4px; padding: 4px 8px; display: inline-block; font-size: 0.9em; text-transform: uppercase; }
+    .status-pendente { background-color: var(--cor-alerta); color: #856404; }
+    .status-em-andamento { background-color: #cfe2ff; color: var(--cor-primaria); }
+    .status-concluido { background-color: var(--cor-secundaria); color: white; }
+    .status-cancelado { background-color: var(--cor-erro); color: white; }
+    .service-info, .form-section { border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin-bottom: 25px; background-color: rgba(255, 255, 255, 0.05); }
+    .service-info p { margin: 5px 0; font-size: 1em; }
+    .service-info strong { color: var(--cor-primaria); font-weight: 700; }
+    .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .full-width { grid-column: 1 / -1; }
+    input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; transition: border-color 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--cor-primaria); outline: none; }
+    .form-actions .btn { padding: 10px 25px; border-radius: 6px; font-weight: 500; transition: background-color 0.2s; }
+    .btn-primary { background-color: var(--cor-primaria); color: white; border: none; }
+    .btn-primary:hover { background-color: #004085; }
+    .btn-secondary { background-color: #6c757d; color: white; border: none; }
+    .btn-secondary:hover { background-color: #5a6268; }
+</style>
+
+<div class="content-container">
+    <h1>🔄 Gerenciar Serviço #{{ servico.id }}</h1>
+    <p>Detalhes e ajustes cadastrais do serviço para <strong>{{ cliente.nome if cliente else "Cliente Não Informado" }}</strong>.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('atualizar_status_servico', servico_id=servico.id) }}" id="form_servico">
+        <div class="main-grid">
+            <div class="form-section full-width">
+                <h3><i class="fas fa-edit"></i> Dados Cadastrais e Status</h3>
+
+                <div class="form-grid">
+                    <div>
+                        <label for="cliente_id">Cliente:</label>
+                        <select id="cliente_id" name="cliente_id" class="form-control" required>
+                            <option value="">Selecione um cliente</option>
+                            {% for c in clientes %}
+                                <option value="{{ c.id }}" data-cpf="{{ c.cpf_cnpj }}"
+                                    {% if cliente and cliente.id == c.id %}selected{% endif %}>
+                                    {{ c.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="cliente_cpf_cnpj">CPF/CNPJ:</label>
+                        <input type="text" id="cliente_cpf_cnpj" name="cliente_cpf_cnpj" 
+                               value="{{ cliente.cpf_cnpj if cliente else '' }}" readonly>
+                    </div>
+
+                    <div>
+                        <label for="tipo_servico">Tipo de Serviço:</label>
+                        <input type="text" id="tipo_servico" name="tipo_servico" value="{{ servico.tipo_servico }}">
+                    </div>
+
+                    <div>
+                        <label for="valor_total">Valor Total do Serviço (R$):</label>
+                        <input type="text" id="valor_total" name="valor_total" 
+                               value="{{ ('%.2f' % servico.valor_total).replace('.', ',') if servico.valor_total else '0,00' }}">
+                    </div>
+
+                    <div class="full-width">
+                        <label for="status_processo">Status do Processo:</label>
+                        <select id="status_processo" name="status_processo" required>
+                            {% for opcao in status_opcoes %}
+                                <option value="{{ opcao }}" {% if servico.status_processo == opcao %}selected{% endif %}>{{ opcao }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="data_entrada">Data de Abertura:</label>
+                        <input type="date" id="data_entrada" name="data_entrada" value="{{ servico.data_servico.strftime('%Y-%m-%d') }}">
+                    </div>
+
+                    <div>
+                        <label for="data_vencimento">Data de Vencimento Estimada:</label>
+                        <input type="date" id="data_vencimento" name="data_vencimento" value="{{ servico.data_vencimento.strftime('%Y-%m-%d') if servico.data_vencimento else '' }}">
+                    </div>
+
+                    <div>
+                        <label for="placa_veiculo">Placa do Veículo:</label>
+                        <input type="text" id="placa_veiculo" name="placa_veiculo" value="{{ servico.placa_veiculo or '' }}">
+                    </div>
+
+                    <div class="full-width">
+                        <label for="detalhes">Detalhes / Observações:</label>
+                        <textarea id="detalhes" name="detalhes" rows="4">{{ servico.detalhes or '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions full-width d-flex justify-content-between mt-4">
+            <a href="{{ url_for('servicos_filtros') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar para a Lista
+            </a>
+            <button type="submit" class="btn btn-primary btn-lg" id="salvar_tudo">
+                <i class="fas fa-save"></i> Salvar Tudo
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const clienteSelect = document.getElementById('cliente_id');
+    const cpfInput = document.getElementById('cliente_cpf_cnpj');
+
+    clienteSelect.addEventListener('change', function() {
+        const selectedOption = clienteSelect.options[clienteSelect.selectedIndex];
+        const cpf = selectedOption.getAttribute('data-cpf') || '';
+        cpfInput.value = cpf;
+    });
+
+    // Converter vírgula em ponto antes de enviar o form
+    const form = document.getElementById('form_servico');
+    form.addEventListener('submit', function() {
+        const valorTotalInput = document.getElementById('valor_total');
+        if (valorTotalInput.value) {
+            valorTotalInput.value = valorTotalInput.value.replace(',', '.');
+        }
+    });
+});
+</script>
+{% endblock %}

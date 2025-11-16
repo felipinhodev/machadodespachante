@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Despachante RS</title>
+</head>
+<body>
+    <h2>🔐 Acesso ao Sistema</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul style="list-style-type: none; padding: 10px; border: 1px solid #ccc;">
+            {% for category, message in messages %}
+                <li style="color: {% if category == 'error' %}red{% elif category == 'success' %}green{% else %}black{% endif %};">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        <label for="username">Usuário:</label><br>
+        <input type="text" id="username" name="username" required><br><br>
+        
+        <label for="password">Senha:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+        
+        <input type="submit" value="Entrar">
+    </form>
+    
+    <p style="font-size: small;">Usuário Padrão: <strong>admin</strong> / Senha Padrão: <strong>admin123</strong></p>
+</body>
+</html>

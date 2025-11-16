@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema Despachante Machado{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* Variáveis de Cores */
+        :root {
+            --cor-primaria: #0056b3;
+            --cor-primaria-escura: #004494;
+            --cor-secundaria: #28aa46;
+            --cor-alerta: #ffc107;
+            --cor-erro: #dc3545;
+            --cor-fundo: #f8f9fa;
+            --cor-container: #ffffff;
+            --cor-texto: #343a40;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+        }
+
+        /* HEADER */
+        .header {
+            background-color: var(--cor-primaria);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-title {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .logo-title span {
+            font-weight: 300;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        .logo-title a {
+            color: white;
+            text-decoration: none;
+        }
+
+        /* MENU DROPDOWN */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+            overflow: hidden;
+            top: 100%;
+            left: 0;
+        }
+        .dropdown-content a {
+            color: var(--cor-texto) !important;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s;
+        }
+        .dropdown-content a:hover {
+            background-color: var(--cor-fundo);
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .nav-link {
+            color: white; 
+            text-decoration: none;
+            padding: 10px 15px;
+            transition: background-color 0.2s;
+            border-radius: 4px;
+        }
+        .nav-link:hover {
+            background-color: var(--cor-primaria-escura);
+        }
+
+        /* INFORMAÇÕES DO USUÁRIO */
+        .user-info {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+        }
+        .user-info strong {
+            margin-right: 10px;
+        }
+        .user-info a {
+            color: #ffe082;
+            text-decoration: none;
+            margin-left: 10px;
+            transition: color 0.2s;
+        }
+        .user-info a:hover {
+            color: white;
+        }
+
+        /* CONTEÚDO PRINCIPAL */
+        .main-content {
+            padding: 30px;
+        }
+
+        .content-container {
+            background: var(--cor-container);
+            padding: 25px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* FLASH MESSAGES */
+        .flash-message { 
+            padding: 12px; 
+            margin-bottom: 20px; 
+            border-radius: 5px; 
+            font-size: 1em;
+            font-weight: 500;
+        }
+        .flash-error { background-color: #f8d7da; color: var(--cor-erro); border: 1px solid #f5c6cb; }
+        .flash-success { background-color: #d4edda; color: var(--cor-secundaria); border: 1px solid #c3e6cb; }
+        .flash-warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .flash-info { background-color: #cfe2ff; color: var(--cor-primaria); border: 1px solid #b3d7ff; }
+
+        /* FORMULÁRIOS & BOTÕES */
+        h1, h2 { 
+            color: var(--cor-primaria); 
+            border-bottom: 2px solid #eee; 
+            padding-bottom: 10px; 
+            margin-bottom: 20px; 
+        }
+        label { 
+            display: block; 
+            margin-top: 15px; 
+            font-weight: 600; 
+        }
+        input, select, textarea {
+            width: 100%; 
+            padding: 10px; 
+            margin-top: 5px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--cor-primaria);
+            outline: none;
+        }
+
+        .btn, button, input[type="submit"] {
+            background-color: var(--cor-secundaria);
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-top: 20px;
+            font-size: 1em;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        .btn:hover, button:hover, input[type="submit"]:hover {
+            background-color: #1e7e34;
+        }
+        .btn-primary { background-color: var(--cor-primaria); }
+        .btn-primary:hover { background-color: var(--cor-primaria-escura); }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        /* Dashboard - Logo central */
+        .dashboard-header {
+            background: linear-gradient(90deg, #0056b3, #28aa46);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .dashboard-logo { font-size: 3em; margin-bottom: 10px; }
+        .dashboard-title { font-size: 2.2em; font-weight: 700; }
+        .dashboard-title span { font-weight: 300; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="logo-title">
+            <a href="{{ url_for('index') }}">
+                🚗 Despachante <span>Machado</span>
+            </a>
+        </div>
+        
+        {% if session.get('logged_in') %}
+            <nav style="display: flex; align-items: center; gap: 20px;">
+                <a href="{{ url_for('index') }}" class="nav-link">
+                    <i class="fas fa-home"></i> Início
+                </a>
+                
+                <div class="dropdown">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        <i class="fas fa-file-alt"></i> Cadastros & Listas
+                    </a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('cliente_cadastro') }}"><i class="fas fa-user-plus"></i> Novo Cliente</a>
+                        <a href="{{ url_for('clientes_lista') }}"><i class="fas fa-users"></i> Lista de Clientes</a>
+                        <a href="{{ url_for('servicos_cadastro_v3') }}"><i class="fas fa-car-side"></i> Novo Serviço</a>
+                        <a href="{{ url_for('servicos_filtros') }}"><i class="fas fa-search-dollar"></i> Buscar Serviços</a>
+                    </div>
+                </div>
+
+                <div class="dropdown">
+    <a href="#" class="nav-link dropdown-toggle">
+        <i class="fas fa-cash-register"></i> Caixa / Financeiro
+    </a>
+    <div class="dropdown-content">
+        <a href="{{ url_for('visualizar_caixa') }}">
+            <i class="fas fa-chart-line"></i> Resumo do Caixa
+        </a>
+        <a href="{{ url_for('despesa_form') }}">
+            <i class="fas fa-receipt"></i> Registrar Despesa
+        </a>
+        <a href="{{ url_for('servicos_lista_v3') }}">
+            <i class="fas fa-hand-holding-usd"></i> Registrar Pagamento
+        </a>
+    </div>
+</div>
+                
+                {% if session.get('nivel_acesso') == 'ADMIN' %}
+                <a href="{{ url_for('colaborador_cadastro') }}" class="nav-link"><i class="fas fa-user-shield"></i> Colaboradores</a>
+                {% endif %}
+            </nav>
+            
+            <div class="user-info">
+                Bem-vindo(a), <strong>{{ session.get('nome', 'Usuário') }}</strong> 
+                (Nível: {{ session.get('nivel_acesso', 'N/A') }})
+                <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> (Sair)</a>
+            </div>
+        {% endif %}
+    </header>
+
+    <div class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="content-container">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+</body>
+</html>

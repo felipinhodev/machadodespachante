@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Serviço</title>
+</head>
+<body>
+    <h2>➕ Registrar Novo Serviço</h2>
+    
+    <form method="post">
+        <label for="tipo_servico">Tipo de Serviço (Ex: Transferência, Vistoria):</label><br>
+        <input type="text" id="tipo_servico" name="tipo_servico" required><br><br>
+        
+        <label for="placa_veiculo">Placa do Veículo (Opcional):</label><br>
+        <input type="text" id="placa_veiculo" name="placa_veiculo"><br><br>
+
+        <label for="cliente">Nome do Cliente:</label><br>
+        <input type="text" id="cliente" name="cliente" required><br><br>
+
+        <label for="funcionario_responsavel">Funcionário Responsável (Nome/ID):</label><br>
+        <input type="text" id="funcionario_responsavel" name="funcionario_responsavel"><br><br>
+        
+        <label for="valor_servico">Valor Cobrado (R$):</label><br>
+        <input type="text" id="valor_servico" name="valor_servico" placeholder="Use ponto para decimais, ex: 150.50" required><br><br>
+
+        <label for="prazo_dias">Prazo Estimado (dias):</label><br>
+        <input type="number" id="prazo_dias" name="prazo_dias" value="5"><br><br>
+        
+        <input type="submit" value="Registrar Serviço">
+    </form>
+    
+    <p><a href="{{ url_for('visualizar_servicos') }}">🔙 Voltar para a Lista de Serviços</a></p>
+</body>
+</html>

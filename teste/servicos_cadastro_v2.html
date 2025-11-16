@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Novo Serviço (Cobrança)</title>
+</head>
+<body>
+    <h2>➕ Registrar Serviço (Controle de Cobrança)</h2>
+    
+    <form method="post">
+        <h3>Detalhes do Serviço</h3>
+        <label for="cliente">Cliente (Nome/Empresa):</label><br>
+        <input type="text" id="cliente" name="cliente" required><br><br>
+        
+        <label for="tipo_servico">Tipo de Serviço:</label><br>
+        <input type="text" id="tipo_servico" name="tipo_servico" placeholder="Ex: Manutenção, Instalação" required><br><br>
+        
+        <label for="data_servico">Data da Prestação do Serviço:</label><br>
+        <input type="date" id="data_servico" name="data_servico" value="{{ data_hoje }}" required><br><br>
+
+        <h3>Dados Financeiros e Cobrança</h3>
+        <label for="valor_total">Valor Total (R$):</label><br>
+        <input type="text" id="valor_total" name="valor_total" placeholder="Ex: 500.00" required><br><br>
+        
+        <label for="data_vencimento">Data de Vencimento:</label><br>
+        <input type="date" id="data_vencimento" name="data_vencimento" required><br><br>
+        
+        <label for="forma_pagamento">Forma de Pagamento Prevista:</label><br>
+        <select id="forma_pagamento" name="forma_pagamento" required>
+            <option value="PIX">PIX</option>
+            <option value="BOLETO">Boleto</option>
+            <option value="DINHEIRO">Dinheiro</option>
+            <option value="CARTAO">Cartão</option>
+            <option value="TRANSFERENCIA">Transferência</option>
+        </select><br><br>
+
+        <h3>Acompanhamento</h3>
+        <label for="observacoes">Observações:</label><br>
+        <textarea id="observacoes" name="observacoes"></textarea><br><br>
+
+        <label for="funcionario_responsavel">Func. Responsável:</label><br>
+        <select id="funcionario_responsavel" name="funcionario_responsavel">
+            <option value="">-- Não Definido --</option>
+            {% for func in funcionarios %}
+                <option value="{{ func.nome }}">{{ func.nome }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <input type="submit" value="Salvar Serviço A RECEBER">
+    </form>
+    
+    <p><a href="{{ url_for('visualizar_servicos') }}">🔙 Voltar para a Lista de Serviços</a></p>
+</body>
+</html>

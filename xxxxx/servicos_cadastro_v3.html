@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro de Novo Serviço | Despachante RS{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h2>🆕 Cadastro de Novo Serviço</h2>
+    <p>Preencha os dados básicos e os valores iniciais do serviço. Você poderá adicionar detalhes na próxima tela.</p>
+
+    <!-- Mensagens -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <div class="form-grid">
+            <!-- Seção Cliente -->
+            <div class="section-separator"><i class="fas fa-info-circle"></i> Informações do Cliente</div>
+
+            <div class="filter-group full-width">
+                <label for="cliente_id">Cliente <span class="text-danger">*</span></label>
+                <select id="cliente_id" name="cliente_id" class="form-control" required>
+                    <option value="" disabled selected>Selecione um Cliente</option>
+                    {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}">{{ cliente.nome }} ({{ cliente.cpf_cnpj }})</option>
+                    {% endfor %}
+                </select>
+                {% if clientes|length == 0 %}
+                    <p class="text-danger mt-2">⚠️ Nenhum cliente cadastrado. Cadastre um cliente primeiro!</p>
+                {% endif %}
+                <small>
+                    <a href="{{ url_for('cliente_cadastro') }}" class="text-primary" style="text-decoration: none; font-size: 0.9em;">
+                        <i class="fas fa-user-plus"></i> Cadastrar Novo Cliente
+                    </a>
+                </small>
+            </div>
+
+            <!-- Seção Dados Básicos -->
+            <div class="section-separator"><i class="fas fa-tasks"></i> Dados Básicos e Valores</div>
+
+            <div class="filter-group">
+                <label for="tipo_servico">Tipo de Serviço <span class="text-danger">*</span></label>
+                <input type="text" id="tipo_servico" name="tipo_servico" class="form-control" placeholder="Ex: Transferência" required>
+            </div>
+
+            <div class="filter-group">
+                <label for="placa_veiculo">Placa do Veículo <span class="text-danger">*</span></label>
+                <input type="text" id="placa_veiculo" name="placa_veiculo" class="form-control" placeholder="Ex: ABC1234" required>
+            </div>
+
+            <div class="filter-group">
+                <label for="valor_total">Valor Total do Serviço (R$) <span class="text-danger">*</span></label>
+                <input type="text" id="valor_total" name="valor_total" class="form-control currency-input" placeholder="0,00" required>
+                <small class="text-muted">Use vírgula (,) para separar centavos.</small>
+            </div>
+
+            <div class="filter-group">
+                <label for="valor_recebido_inicial">Valor Recebido no Início</label>
+                <input type="text" id="valor_recebido_inicial" name="valor_recebido_inicial" class="form-control currency-input" placeholder="0,00">
+                <small class="text-muted">Se maior que 0, será registrado no caixa.</small>
+            </div>
+
+            <div class="filter-group">
+                <label for="data_servico">Data do Serviço <span class="text-danger">*</span></label>
+                <input type="date" id="data_servico" name="data_servico" class="form-control" value="{{ today }}" required>
+            </div>
+
+            <div class="filter-group">
+                <label for="data_vencimento">Data de Vencimento (Opcional)</label>
+                <input type="date" id="data_vencimento" name="data_vencimento" class="form-control">
+            </div>
+
+            <!-- Detalhes -->
+            <div class="filter-group full-width">
+                <label for="detalhes">Detalhes / Observações Iniciais</label>
+                <textarea id="detalhes" name="detalhes" rows="4" class="form-control" placeholder="Descreva documentos recebidos, o que precisa ser feito ou observações."></textarea>
+            </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{{ url_for('servicos_filtros') }}" class="btn btn-secondary">🔙 Voltar para a Lista de Serviços</a>
+            <button type="submit" class="btn btn-primary">💾 Cadastrar Serviço</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .content-container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: transparent;
+        padding: 20px;
+    }
+
+    h2 {
+        color: var(--cor-primaria);
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    .section-separator {
+        grid-column: 1 / -1;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+        color: var(--cor-primaria);
+        border-bottom: 1px dashed #ccc;
+        padding-bottom: 5px;
+    }
+
+    label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    input.form-control,
+    select.form-control,
+    textarea.form-control {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        transition: border-color 0.2s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--cor-primaria);
+        outline: none;
+    }
+
+    .alert {
+        border-radius: 6px;
+        font-weight: 500;
+        padding: 12px 18px;
+        margin-bottom: 10px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const currencyInputs = document.querySelectorAll('.currency-input');
+    currencyInputs.forEach(input => {
+        input.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g,'');
+            value = (value/100).toFixed(2) + '';
+            value = value.replace('.', ',');
+            e.target.value = value;
+        });
+    });
+});
+</script>
+{% endblock %}

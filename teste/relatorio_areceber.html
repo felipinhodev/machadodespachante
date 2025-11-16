@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de A Receber</title>
+    <style>
+        /* Estilos de Tela Comuns */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { color: #0056b3; }
+        .resumo { 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            margin-bottom: 20px; 
+            background-color: #fffae6; 
+            border-radius: 5px;
+        }
+        .filtro-form { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .filtro-form label { font-weight: bold; margin-right: 10px; }
+        .filtro-form select, .filtro-form input[type="submit"], .acoes-botoes button, .filtro-form input[type="date"] {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .filtro-form input[type="submit"] {
+            background-color: #ff9800;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        /* Botões de Ação */
+        .acoes-botoes { margin-bottom: 20px; }
+        .btn-imprimir { background-color: #dc3545; color: white; cursor: pointer; }
+
+        /* Estilos de Tabela */
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .vencido { color: red; font-weight: bold; }
+        .warning { color: red; }
+
+        /* ESTILOS ESPECÍFICOS PARA IMPRESSÃO EM PDF */
+        @media print {
+            body { margin: 0; padding: 0; font-size: 10pt; }
+            .acoes-botoes, .filtro-form, a { display: none; }
+            table { margin-top: 5px; }
+            th { background-color: #cccccc !important; -webkit-print-color-adjust: exact; }
+            
+            h2:before {
+                content: "Relatório de Contas a Receber | Gerado em: {{ today.strftime('%d/%m/%Y %H:%M') }} | ";
+                display: block;
+                font-size: 10pt;
+                color: #555;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>📝 Relatório de Contas a Receber</h2>
+    <p>Lista todos os serviços com saldo pendente (Status: A RECEBER ou PARCIAL).</p>
+    
+    <div class="acoes-botoes">
+        <a href="{{ url_for('visualizar_caixa') }}">
+            <button style="background-color: #6c757d; color: white;">🔙 Voltar para o Caixa</button>
+        </a>
+        <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir/Gerar PDF</button>
+    </div>
+
+    <div class="filtro-form">
+        <form method="get" style="display: flex; gap: 15px; align-items: flex-end;">
+            <div>
+                <label for="cliente_id">Filtrar por Cliente:</label>
+                <select id="cliente_id" name="cliente_id">
+                    <option value="0">--- TODOS ---</option>
+                    {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}" 
+                                {% if cliente_selecionado and cliente.id == cliente_selecionado.id %}selected{% endif %}>
+                            {{ cliente.nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="data_inicio">Vencimento Início:</label>
+                <input type="date" id="data_inicio" name="data_inicio" 
+                       value="{{ data_inicio_filtro or '' }}" 
+                       style="width: 150px;">
+            </div>
+
+            <div>
+                <label for="data_fim">Vencimento Fim:</label>
+                <input type="date" id="data_fim" name="data_fim" 
+                       value="{{ data_fim_filtro or '' }}" 
+                       style="width: 150px;">
+            </div>
+            
+            <input type="submit" value="Filtrar">
+        </form>
+    </div>
+
+    <div class="resumo">
+        {% if cliente_selecionado %}
+            <h3>Contas a Receber de: <span style="color: darkorange;">{{ cliente_selecionado.nome }}</span></h3>
+        {% else %}
+            <h3>Total Pendente de Recebimento:</h3>
+        {% endif %}
+        
+        <p style="font-size: 1.5em; color: red;">R$ {{ "%.2f"|format(total_pendente) }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID Serviço</th>
+                <th>Cliente</th>
+                <th>Tipo Serviço</th>
+                <th>Vencimento</th>
+                <th>Valor Total (R$)</th>
+                <th>Valor Recebido (R$)</th>
+                <th>Saldo Pendente (R$)</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for servico in servicos_abertos %}
+            {% set saldo_pendente = servico.valor_total - servico.valor_recebido %}
+            
+            {% set vencido = servico.data_vencimento and servico.data_vencimento < today.strftime('%Y-%m-%d') %}
+            
+            <tr class="{% if vencido %}warning{% endif %}">
+                <td>{{ servico.id }}</td>
+                <td>{{ servico.cliente }}</td>
+                <td>{{ servico.tipo_servico }}</td>
+                <td class="{% if vencido %}warning{% endif %}">{{ servico.data_vencimento }}</td>
+                <td>R$ {{ "%.2f"|format(servico.valor_total) }}</td>
+                <td>R$ {{ "%.2f"|format(servico.valor_recebido) }}</td>
+                <td style="color: red;">R$ {{ "%.2f"|format(saldo_pendente) }}</td>
+                <td>
+                    <span style="color: {% if servico.status_pagamento == 'A RECEBER' %}red{% elif servico.status_pagamento == 'PARCIAL' %}orange{% else %}black{% endif %}; font-weight: bold;">
+                        {{ servico.status_pagamento }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('processar_pagamento', servico_id=servico.id) }}">💵 Receber</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" style="text-align: center;">Nenhuma conta a receber pendente.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Serviços | Despachante Machado{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos para badges de status (reaproveitando do status_servico.html) */
+    .status-badge { 
+        font-weight: bold; 
+        border-radius: 4px; 
+        padding: 4px 8px; 
+        display: inline-block; 
+        font-size: 0.85em; 
+        text-transform: uppercase; 
+    }
+    .status-pendente { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .status-em-andamento { background-color: #cfe2ff; color: #07387f; border: 1px solid #b8daff; }
+    .status-concluido { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .status-cancelado { background-color: #e9ecef; color: #495057; border: 1px solid #c6c8ca; }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    .table-servicos {
+        width: 100%;
+        margin-top: 20px;
+    }
+    .table-servicos th, .table-servicos td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+    .action-buttons a {
+        margin-right: 5px;
+    }
+</style>
+
+<h2>📋 Lista de Serviços</h2>
+<p>Visão geral de todos os serviços registrados e seus status atuais.</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div style="margin-bottom: 20px;">
+    <a href="{{ url_for('servicos_cadastro_v3') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Novo Serviço
+    </a>
+    <a href="{{ url_for('servicos_filtros') }}" class="btn btn-secondary">
+        <i class="fas fa-filter"></i> Filtrar/Buscar
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-servicos">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Tipo</th>
+                <th>Valor Total</th>
+                <th>Valor Pago</th>
+                <th>Saldo Pendente</th>
+                <th>Status</th>
+                <th>Data Início</th>
+                <th style="text-align: center;">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if servicos_lista %}
+                {% for servico in servicos_lista %}
+                <tr>
+                    <td>#{{ servico.id }}</td>
+                    <td>{{ servico.cliente.nome }}</td>
+                    <td>{{ servico.tipo_servico }}</td>
+                    <td>{{ servico.valor_total | moeda }}</td>                     <td>{{ servico.valor_pago | moeda }}</td>                     
+                    {% set saldo = servico.valor_total - servico.valor_pago %}
+                    <td style="font-weight: 600; color: {% if saldo > 0 %}var(--cor-erro){% else %}var(--cor-secundaria){% endif %};">
+                        {{ saldo | moeda }}                     </td>
+                    
+                    <td>
+                        {% set status_class = servico.status_processo.lower().replace(' ', '-') %}
+                        <span class="status-badge status-{{ status_class }}">{{ servico.status_processo }}</span>
+                    </td>
+                    
+                    <td>{{ servico.data_entrada | default('N/A') }}</td>
+                    
+                    <td class="action-buttons text-center">
+                        
+                        <a href="{{ url_for('processar_pagamento', servico_id=servico.id) }}" 
+                           class="btn btn-sm btn-success" title="Registrar Pagamento">
+                            <i class="fas fa-money-bill-wave"></i> Pagar
+                        </a>
+
+                        <a href="{{ url_for('atualizar_status_servico', servico_id=servico.id) }}" 
+                           class="btn btn-sm btn-info" title="Mudar Status/Placa">
+                            <i class="fas fa-tasks"></i> Status
+                        </a>
+                        
+                        </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="9" class="text-center">Nenhum serviço encontrado.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+        </table>
+</div>
+
+{% endblock %}

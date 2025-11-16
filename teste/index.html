@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Principal - App Despachante RS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #0056b3; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .module-group { margin-top: 25px; padding: 15px; border: 1px solid #ccc; border-radius: 6px; }
+        .module-group h2 { margin-top: 0; color: #333; }
+        .module-group ul { list-style: none; padding: 0; }
+        .module-group li { margin: 10px 0; }
+        .module-group a { 
+            display: inline-block; 
+            padding: 10px 15px; 
+            text-decoration: none; 
+            color: white; 
+            border-radius: 4px; 
+            transition: background-color 0.3s;
+        }
+        
+        /* Cores dos Módulos */
+        .op-link { background-color: #28a745; } /* Verde - Serviços Operacionais */
+        .client-link { background-color: #007bff; } /* Azul - Clientes */
+        .finance-link { background-color: #ffc107; color: #333 !important; } /* Amarelo - Financeiro */
+        .admin-link { background-color: #dc3545; } /* Vermelho - Administração */
+
+        .op-link:hover { background-color: #218838; }
+        .client-link:hover { background-color: #0056b3; }
+        .finance-link:hover { background-color: #e0a800; }
+        .admin-link:hover { background-color: #c82333; }
+
+        .user-info { float: right; font-size: 0.9em; color: #666; }
+        .user-info a { color: #dc3545; margin-left: 10px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="user-info">
+            Usuário: <strong>{{ session.get('username', 'N/A') }}</strong> (Nível: {{ session.get('nivel_acesso', 'N/A') }})
+            <a href="{{ url_for('logout') }}">(Sair)</a>
+        </div>
+        <h1>🏠 Menu Principal do Sistema Despachante</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul style="list-style-type: none; padding: 10px; border: 1px solid #ccc; background-color: #f0f0f0;">
+                {% for category, message in messages %}
+                    <li style="color: {% if category == 'error' %}red{% elif category == 'success' %}green{% else %}blue{% endif %};">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <div class="module-group">
+            <h2>📑 Gestão Operacional de Serviços</h2>
+            <ul>
+                <li>
+                    <a href="{{ url_for('registrar_servico') }}" class="op-link">➕ Registrar Novo Serviço</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('visualizar_servicos') }}" class="op-link">📋 Visualizar e Gerenciar Processos</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="module-group">
+            <h2>👥 Cadastro de Clientes</h2>
+            <ul>
+                <li>
+                    <a href="{{ url_for('cadastro_cliente') }}" class="client-link">👤 Cadastrar Novo Cliente</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('visualizar_clientes') }}" class="client-link">🔍 Lista e Edição de Clientes</a>
+                </li>
+            </ul>
+        </div>
+        
+        {% if session.get('nivel_acesso') in ['ADMIN', 'MASTER'] %}
+        <div class="module-group" style="border-color: #ffc107;">
+            <h2>💰 Módulo Financeiro</h2>
+            <ul>
+                <li>
+                    <a href="{{ url_for('visualizar_caixa') }}" class="finance-link">💵 Visualizar Fluxo de Caixa / Despesas</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('relatorio_areceber') }}" class="finance-link">📝 Relatório de Contas a Receber</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('relatorio_faturamento') }}" class="finance-link">📈 Relatório de Faturamento</a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if session.get('nivel_acesso') == 'ADMIN' %}
+        <div class="module-group" style="border-color: #dc3545;">
+            <h2>⚙️ Administração do Sistema</h2>
+            <ul>
+                <li>
+                    <a href="{{ url_for('cadastro_colaborador') }}" class="admin-link">➕ Cadastrar Novo Colaborador/Usuário</a>
+                </li>
+                </ul>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

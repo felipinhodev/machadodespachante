@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Débitos por Cliente | Despachante RS{% endblock %}
+
+{% block content %}
+<style>
+    /* VARIÁVEIS (Apenas para garantir que as cores funcionem, se definidas externamente) */
+    :root {
+        /* Assumindo que essas variáveis estão definidas na base.html ou app.py */
+        --cor-primaria: #007bff; /* Exemplo: Azul forte para cabeçalhos e botões primários */
+        --cor-primaria-escura: #0056b3;
+    }
+
+    /* ======== ESTILOS GERAIS DO CÓDIGO 1 ======== */
+    body {
+        background-color: #121212;
+        color: #f8f9fa; /* Cor do texto geral */
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Container principal do Cód. 1 */
+    .relatorio-container {
+        max-width: 1400px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #121212;
+        border-radius: 15px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+    }
+
+    h1 {
+        color: var(--cor-primaria);
+        margin-bottom: 25px;
+        font-weight: 600;
+    }
+
+    h2 {
+        margin-top: 35px; /* Ajuste para espaçamento */
+        color: #ddd;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+
+    p {
+        color: #b0b0b0;
+    }
+
+
+    /* ======== FILTROS (FORÇANDO HORIZONTALIDADE) ======== */
+    .filtros { /* Classe do form no Cód. 1 */
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 25px;
+        background-color: #1c1c1c;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+        align-items: flex-end; /* Alinha itens (campos e botões) pela base */
+    }
+
+    .filter-group { /* Cada campo de filtro */
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 200px; /* Garante que ocupe o espaço e alinhe horizontalmente */
+        min-width: 180px;
+    }
+
+    .filter-group label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: #ccc;
+        font-size: 0.9em;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px solid #444;
+        background-color: #181818;
+        color: #f0f0f0;
+        font-size: 0.9em;
+    }
+
+    /* Grupo de Botões (mantido no Cód. 2, mas estilizado para o layout horizontal) */
+    .filter-button-group {
+        display: flex;
+        gap: 10px;
+        flex: 0 0 auto;
+        align-items: flex-end;
+    }
+
+    /* Estilo dos botões */
+    .btn, .btn-primary, .btn-secondary {
+        border: none;
+        border-radius: 6px;
+        padding: 10px 20px; /* Tamanho ajustado */
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 38px; /* Altura fixa para alinhamento */
+        white-space: nowrap;
+    }
+    .btn:hover { transform: scale(1.03); }
+
+    .btn-primary { background-color: var(--cor-primaria); color: #fff; }
+    .btn-secondary { background-color: #6c757d; color: #fff; }
+
+    .btn-primary:hover { background-color: var(--cor-primaria-escura); }
+    .btn-secondary:hover { background-color: #565e64; }
+
+    /* Botão Exportar (Cód. 1) */
+    .btn-exportar {
+        background-color: #198754;
+        color: white;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .btn-exportar:hover { background-color: #146c43; }
+
+
+    /* ======== RESUMO (Card) ======== */
+    .summary-box {
+        background-color: #1c1c1c; /* Cor de card do Cód. 1 */
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        color: #f8f9fa;
+    }
+
+    .summary-value {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #ff7070; /* Cor vermelha para débito */
+    }
+
+    /* ======== TABELA (Estilo do Cód. 1) ======== */
+    .table-responsive {
+        overflow-x: auto;
+        margin-top: 10px;
+        border-radius: 10px;
+        box-shadow: 0 0 6px rgba(0,0,0,0.5);
+    }
+
+    .servicos-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #1c1c1c;
+        border-radius: 10px;
+        overflow: hidden; /* Importante para o border-radius funcionar */
+        font-size: 0.9em;
+    }
+
+    .servicos-table thead {
+        background-color: var(--cor-primaria); /* CORREÇÃO: Cabeçalho com cor primária */
+        color: #fff;
+    }
+
+    .servicos-table th, .servicos-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+    }
+
+    .servicos-table th {
+        text-transform: none; /* Remove uppercase */
+        letter-spacing: normal;
+        font-size: 1em; /* Tamanho normal do Cód. 1 */
+        font-weight: 600;
+    }
+
+    .servicos-table tr:hover {
+        background-color: #2a2a2a;
+    }
+
+    .text-end { text-align: right; }
+    .btn-sm { padding: 6px 10px; font-size: 0.85em; }
+
+    /* FOOTER da tabela (Mantendo a aparência de linha destacada) */
+    .servicos-table tfoot tr {
+        background-color: #2a2a2a !important; 
+        color: #fff;
+        border-top: 2px solid #555;
+    }
+
+    /* ======== MODO IMPRESSÃO ======== */
+    @media print {
+        .no-print { display: none; }
+        .servicos-table th, .servicos-table td { font-size: 10px; padding: 5px; }
+        h2 { font-size: 1.4em; }
+    }
+
+    /* ======== ALERTA ======== */
+    .alert-info {
+        background-color: #00485c;
+        color: #cceeff;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #007bff;
+        text-align: center;
+    }
+
+    /* Reset de classes do Cód. 2 que não existem mais ou foram fundidas */
+    .dashboard-container { all: unset; display: block; }
+    .filter-grid { display: contents; } /* Remove o efeito de container extra */
+
+    /* RESPONSIVIDADE dos filtros */
+    @media (max-width: 768px) {
+        .filtros {
+            flex-direction: column; /* Volta para a vertical em telas menores */
+            align-items: stretch;
+        }
+        .filter-group {
+            flex-basis: auto;
+        }
+        .filter-button-group {
+            flex-direction: row;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+    }
+</style>
+
+<div class="relatorio-container" id="area-relatorio">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary no-print" style="margin-bottom: 20px;">
+        ← Voltar ao Menu Principal
+    </a>
+
+    <h1>🧾 Relatório de Débitos por Cliente</h1>
+    <p>Lista todos os serviços com <strong>saldo pendente</strong> e permite filtrar por cliente, placa e data.</p>
+
+    <form method="get" class="filtros no-print">
+        <div class="filter-group">
+            <label for="cliente_id">Cliente</label>
+            <select id="cliente_id" name="cliente_id">
+                <option value="">Todos os Clientes</option>
+                {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}" {% if selected_cliente_id == cliente.id | string %}selected{% endif %}>
+                        {{ cliente.nome }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="placa">Placa</label>
+            <input type="text" id="placa" name="placa" placeholder="Ex: ABC1234" value="{{ selected_placa or '' }}">
+        </div>
+
+        <div class="filter-group">
+            <label for="data_inicio">Data Início</label>
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ selected_data_inicio or '' }}">
+        </div>
+
+        <div class="filter-group">
+            <label for="data_fim">Data Fim</label>
+            <input type="date" id="data_fim" name="data_fim" value="{{ selected_data_fim or '' }}">
+        </div>
+
+        <div class="filter-button-group">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a href="{{ url_for('relatorio_debitos') }}" class="btn btn-secondary">Limpar</a>
+        </div>
+    </form>
+
+    <div class="summary-box">
+        <strong>Saldo Total a Receber em Aberto:</strong>
+        <span class="summary-value">{{ total_debitos | moeda }}</span>
+    </div>
+
+    <h2>Serviços Pendentes</h2>
+
+    {% if debitos %}
+        <div class="table-responsive">
+            <table class="servicos-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Data Serviço</th>
+                        <th>Placa</th>
+                        <th>Serviço</th>
+                        <th class="text-end">Valor Total (R$)</th>
+                        <th class="text-end">Valor Recebido (R$)</th>
+                        <th class="text-end">Saldo Devedor (R$)</th>
+                        <th class="no-print">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for debito in debitos %}
+                    <tr>
+                        <td>{{ debito.id }}</td>
+                        <td>{{ debito.cliente_nome }}</td>
+                        <td>{{ debito.data_servico.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ debito.placa_veiculo or 'N/A' }}</td>
+                        <td>{{ debito.tipo_servico }}</td>
+                        <td class="text-end">{{ debito.valor_total | moeda }}</td>
+                        <td class="text-end">{{ debito.valor_recebido | moeda }}</td>
+                        <td class="text-end" style="color:#ff7070; font-weight:700;">{{ debito.saldo_devedor | moeda }}</td>
+                        <td class="no-print">
+                            <a href="{{ url_for('processar_pagamento') }}?servico_id={{ debito.id }}" class="btn btn-success btn-sm">💰 Pagar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background-color:#2a2a2a; color:#fff;">
+                        <td colspan="7" class="text-end"><strong>Total Geral em Débitos:</strong></td>
+                        <td class="text-end" style="color:#ff7070;"><strong>{{ total_debitos | moeda }}</strong></td>
+                        <td class="no-print"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="no-print" style="text-align:right; margin-top:25px;">
+            <button class="btn-exportar" onclick="gerarPDF()">
+                <i class="fas fa-file-pdf"></i> 🖨️ Gerar PDF de Cobrança
+            </button>
+        </div>
+    {% else %}
+        <div class="alert-info mt-4">
+            🎉 Nenhum débito pendente encontrado com os filtros aplicados.
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function gerarPDF() {
+        // 1. Captura os valores atuais dos campos de filtro
+        const clienteId = document.getElementById('cliente_id').value;
+        const placa = document.getElementById('placa').value;
+        const dataInicio = document.getElementById('data_inicio').value;
+        const dataFim = document.getElementById('data_fim').value;
+
+        // 2. Monta a URL base para a rota de geração de PDF no Flask/Python
+        let url = `{{ url_for('exportar_debitos_pdf') }}?`;
+        
+        // 3. Adiciona os filtros à URL se eles tiverem valores
+        if (clienteId) url += `cliente_id=${clienteId}&`;
+        if (placa) url += `placa=${placa}&`;
+        if (dataInicio) url += `data_inicio=${dataInicio}&`;
+        if (dataFim) url += `data_fim=${dataFim}&`;
+        
+        // 4. Remove o '&' final se houver (para garantir uma URL limpa)
+        if (url.endsWith('&')) {
+            url = url.slice(0, -1);
+        }
+
+        // 5. Abre o PDF em uma nova aba, enviando a URL com os filtros
+        window.open(url, '_blank');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema Despachante Machado{% endblock %}</title>
+
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" 
+          onerror="this.onerror=null;this.href='/static/css/fontawesome-fallback.css'">
+
+    <style>
+        /* ========= VARIÁVEIS DE CORES (DARK MODE FIXO) ========= */
+        :root {
+            /* Cores principais existentes */
+            --cor-primaria: #0d6efd;
+            --cor-primaria-escura: #084298;
+            --cor-secundaria: #198754;
+            --cor-alerta: #ffc107;
+            --cor-erro: #dc3545;
+            --cor-fundo: #121212;
+            --cor-container: #1e1e1e;
+            --cor-texto: #f0f0f0;
+            --cor-texto-secundario: #b0b0b0;
+            --cor-hover: #2c2c2c;
+            --cor-borda: #333;
+            --sombra: rgba(0, 0, 0, 0.5);
+
+            /* NOVAS - Para status e estados */
+            --cor-sucesso: #28a745;
+            --cor-info: #17a2b8;
+            --cor-aviso: #ffc107;
+
+            /* NOVAS - Para saldos financeiros */
+            --cor-saldo-positivo: #28a745;
+            --cor-saldo-negativo: #e74c3c;
+            --cor-saldo-zero: #ffc107;
+
+            /* NOVAS - Para status badges */
+            --cor-pendente: #5c4300;
+            --cor-pendente-texto: #ffdb70;
+            --cor-andamento: #003366;
+            --cor-andamento-texto: #cce0ff;
+            --cor-aguardando: #005662;
+            --cor-aguardando-texto: #b2faff;
+            --cor-concluido: #0f3d1e;
+            --cor-concluido-texto: #9ef5b3;
+            --cor-cancelado: #333;
+            --cor-cancelado-texto: #ccc;
+
+            /* NOVAS - Para pagamentos */
+            --cor-pago: #0f3d1e;
+            --cor-pago-texto: #9ef5b3;
+            --cor-parcial: #5c4300;
+            --cor-parcial-texto: #ffdb70;
+            --cor-a-cobrar: #7a1a1a;
+            --cor-a-cobrar-texto: #ffbdbd;
+            --cor-nao-cobrado: #444;
+            --cor-nao-cobrado-texto: #bbb;
+
+            /* NOVAS - Espaçamentos padronizados */
+            --espacamento-xs: 5px;
+            --espacamento-sm: 10px;
+            --espacamento-md: 15px;
+            --espacamento-lg: 20px;
+            --espacamento-xl: 25px;
+
+            /* NOVAS - Bordas e raios */
+            --borda-radius: 6px;
+            --borda-radius-lg: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            line-height: 1.6;
+        }
+
+        /* ========= HEADER ========= */
+        .header {
+            background-color: var(--cor-container);
+            color: var(--cor-texto);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px var(--sombra);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--cor-borda);
+        }
+
+        .logo-title {
+            font-size: 1.6em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-title a {
+            color: var(--cor-texto);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-title a:hover {
+            color: var(--cor-primaria);
+        }
+
+        .logo-title span {
+            font-weight: 300;
+            font-size: 0.8em;
+            margin-left: 5px;
+            color: var(--cor-texto-secundario);
+        }
+
+        /* ========= MENU / DROPDOWN ========= */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #1a1a1a;
+            min-width: 200px;
+            box-shadow: 0 4px 10px var(--sombra);
+            z-index: 1;
+            border-radius: var(--borda-radius);
+            overflow: hidden;
+            top: 100%;
+            left: 0;
+            margin-top: 2px;
+            border: 1px solid var(--cor-borda);
+        }
+
+        .dropdown-content a {
+            color: var(--cor-texto);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: var(--cor-hover);
+            color: var(--cor-primaria);
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .main-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-link {
+            color: var(--cor-texto);
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: var(--borda-radius);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: var(--cor-hover);
+            color: var(--cor-primaria);
+        }
+
+        /* ========= USER INFO ========= */
+        .user-info {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            gap: 10px;
+            color: var(--cor-texto-secundario);
+        }
+
+        .user-info strong {
+            color: var(--cor-texto);
+        }
+
+        .user-info a {
+            color: #00bcd4;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .user-info a:hover {
+            color: var(--cor-primaria);
+        }
+
+        /* ========= CONTEÚDO PRINCIPAL ========= */
+        .main-content {
+            padding: 30px;
+        }
+
+        .content-container {
+            background-color: var(--cor-container);
+            padding: 25px 30px;
+            border-radius: var(--borda-radius-lg);
+            box-shadow: 0 4px 15px var(--sombra);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ========= FLASH MESSAGES ========= */
+        .flash-messages-container {
+            padding-bottom: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .flash-message {
+            padding: 12px 18px;
+            margin-bottom: 15px;
+            border-radius: var(--borda-radius);
+            font-size: 1em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 6px var(--sombra);
+        }
+
+        .flash-error { background-color: #3b0d0d; color: #ff6b6b; }
+        .flash-success { background-color: #0f3d1e; color: #9ef5b3; }
+        .flash-warning { background-color: #5c4300; color: #ffdb70; }
+        .flash-info { background-color: #003366; color: #cce0ff; }
+
+        /* ========= TÍTULOS E TEXTOS ========= */
+        h1, h2 {
+            color: var(--cor-texto);
+            border-bottom: 1px solid var(--cor-borda);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: var(--cor-texto-secundario);
+        }
+
+        /* ========= FORMULÁRIOS ========= */
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 5px;
+            background-color: #1a1a1a;
+            border: 1px solid var(--cor-borda);
+            border-radius: var(--borda-radius);
+            color: var(--cor-texto);
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--cor-primaria);
+            outline: none;
+        }
+
+        /* ========= BOTÕES ========= */
+        .btn, button, input[type="submit"] {
+            background-color: var(--cor-primaria);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--borda-radius);
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1em;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .btn:hover, button:hover, input[type="submit"]:hover {
+            background-color: var(--cor-primaria-escura);
+            transform: scale(1.03);
+        }
+
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #565e64; }
+        .btn-danger { background-color: var(--cor-erro); }
+        .btn-danger:hover { background-color: #a71d2a; }
+
+        /* ========= DASHBOARD HEADER ========= */
+        .dashboard-header {
+            background: linear-gradient(90deg, #0d6efd, #198754);
+            color: white;
+            padding: 40px 20px;
+            border-radius: var(--borda-radius-lg);
+            box-shadow: 0 4px 20px var(--sombra);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-logo { font-size: 3em; margin-bottom: 10px; }
+        .dashboard-title { font-size: 2.2em; font-weight: 700; }
+        .dashboard-title span { font-weight: 300; font-size: 1.2em; color: #d0d0d0; }
+
+        /* ========= CLASSES DE STATUS BADGES ========= */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .status-pendente {
+            background-color: var(--cor-pendente);
+            color: var(--cor-pendente-texto);
+        }
+
+        .status-em-andamento {
+            background-color: var(--cor-andamento);
+            color: var(--cor-andamento-texto);
+        }
+
+        .status-aguardando-retirada {
+            background-color: var(--cor-aguardando);
+            color: var(--cor-aguardando-texto);
+        }
+
+        .status-concluido {
+            background-color: var(--cor-concluido);
+            color: var(--cor-concluido-texto);
+        }
+
+        .status-cancelado {
+            background-color: var(--cor-cancelado);
+            color: var(--cor-cancelado-texto);
+        }
+
+        /* ========= CLASSES DE PAGAMENTO ========= */
+        .pagamento-pago {
+            background-color: var(--cor-pago);
+            color: var(--cor-pago-texto);
+        }
+
+        .pagamento-parcial {
+            background-color: var(--cor-parcial);
+            color: var(--cor-parcial-texto);
+        }
+
+        .pagamento-a-cobrar {
+            background-color: var(--cor-a-cobrar);
+            color: var(--cor-a-cobrar-texto);
+        }
+
+        .pagamento-nao-cobrado {
+            background-color: var(--cor-nao-cobrado);
+            color: var(--cor-nao-cobrado-texto);
+        }
+
+        /* ========= CLASSES DE VALORES FINANCEIROS ========= */
+        .valor-positivo { 
+            color: var(--cor-saldo-positivo); 
+            font-weight: 600;
+        }
+
+        .valor-negativo { 
+            color: var(--cor-saldo-negativo); 
+            font-weight: 600;
+        }
+
+        .valor-zero { 
+            color: var(--cor-saldo-zero); 
+            font-weight: 600;
+        }
+
+        /* ========= CLASSES DE TABELAS PADRONIZADAS ========= */
+        .tabela-sistema {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9em;
+            background-color: var(--cor-container);
+            border-radius: var(--borda-radius);
+            overflow: hidden;
+        }
+
+        .tabela-sistema th,
+        .tabela-sistema td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--cor-borda);
+        }
+
+        .tabela-sistema th {
+            background-color: var(--cor-primaria);
+            color: var(--cor-texto);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .tabela-sistema tr:hover {
+            background-color: var(--cor-hover);
+        }
+
+        .tabela-sistema tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        /* ========= UTILITÁRIOS DE LAYOUT ========= */
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .grid-auto {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--espacamento-lg);
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: 600; }
+
+        /* ========= RESPONSIVIDADE MELHORADA ========= */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .content-container {
+                padding: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: var(--espacamento-sm);
+                justify-content: center;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .main-nav {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .dropdown-content {
+                position: static;
+                display: block;
+                box-shadow: none;
+                background-color: var(--cor-hover);
+                margin-top: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-auto {
+                grid-template-columns: 1fr;
+            }
+
+            .flex-between {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--espacamento-md);
+            }
+
+            .tabela-sistema {
+                font-size: 0.8em;
+            }
+
+            .tabela-sistema th,
+            .tabela-sistema td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo-title">
+            <a href="{{ url_for('index') }}">
+                <i class="fas fa-car-side"></i> Despachante Machado <span></span>
+            </a>
+        </div>
+
+        {% if session.get('logged_in') %}
+        <nav class="main-nav">
+            <a href="{{ url_for('index') }}" class="nav-link"><i class="fas fa-home"></i> Início</a>
+
+            <div class="dropdown">
+                <a href="#" class="nav-link dropdown-toggle">
+                    <i class="fas fa-file-alt"></i> Cadastros & Listas <i class="fas fa-caret-down"></i>
+                </a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('cliente_cadastro') }}"><i class="fas fa-user-plus"></i> Novo Cliente</a>
+                    <a href="{{ url_for('clientes_lista') }}"><i class="fas fa-users"></i> Lista de Clientes</a>
+                    <a href="{{ url_for('servicos_cadastro_v3') }}"><i class="fas fa-car-side"></i> Novo Serviço</a>
+                    <a href="{{ url_for('servicos_filtros') }}"><i class="fas fa-search-dollar"></i> Buscar Serviços</a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <a href="#" class="nav-link dropdown-toggle">
+                    <i class="fas fa-cash-register"></i> Caixa / Financeiro <i class="fas fa-caret-down"></i>
+                </a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('visualizar_caixa') }}"><i class="fas fa-chart-line"></i> Resumo do Caixa</a>
+                    <a href="{{ url_for('despesa_form') }}"><i class="fas fa-receipt"></i> Registrar Despesa</a>
+                    <a href="{{ url_for('processar_pagamento') }}"><i class="fas fa-hand-holding-usd"></i> Registrar Pagamento</a>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <a href="#" class="nav-link dropdown-toggle">
+                    <i class="fas fa-chart-pie"></i> Relatórios <i class="fas fa-caret-down"></i>
+                </a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('relatorio_debitos') }}"><i class="fas fa-exclamation-triangle"></i> Contas a Receber</a>
+                    <a href="{{ url_for('relatorio_despesas') }}"><i class="fas fa-money-bill-wave"></i> Extrato de Despesas</a>
+                    <a href="{{ url_for('relatorio_fluxo_caixa') }}"><i class="fas fa-exchange-alt"></i> Fluxo de Caixa</a>
+                </div>
+            </div>
+
+            {% if session.get('nivel_acesso') == 'ADMIN' %}
+            <a href="{{ url_for('colaborador_cadastro') }}" class="nav-link"><i class="fas fa-user-shield"></i> Colaboradores</a>
+            {% endif %}
+        </nav>
+
+        <div class="user-info">
+            Bem-vindo(a), <strong>{{ session.get('nome', 'Usuário') }}</strong>
+            (Nível: {{ session.get('nivel_acesso', 'N/A') }})
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        </div>
+        {% endif %}
+    </header>
+
+    <div class="main-content">
+        <div class="flash-messages-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% set css_class = 'flash-info' if category == 'message' else 'flash-' + category %}
+                        <div class="flash-message {{ css_class }}">
+                            <i class="fas fa-info-circle"></i> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="content-container">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>
+

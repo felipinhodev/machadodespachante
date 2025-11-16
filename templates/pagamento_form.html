@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    /* ======== MODO ESCURO FIXO / DASHBOARD MODERNO ======== */
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    h2, h3 {
+        color: #ffffff;
+    }
+
+    .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-end;
+        padding: 15px;
+        border: 1px solid #2a2a2a;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        background-color: #1e1e1e;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .filters label {
+        font-weight: 600;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        color: #bbb;
+    }
+
+    .filters .form-control {
+        background-color: #2a2a2a;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 6px;
+        min-width: 150px;
+        max-width: 250px;
+        padding: 6px 10px;
+    }
+
+    .filters .form-control:focus {
+        border-color: #00bcd4;
+        outline: none;
+        box-shadow: 0 0 5px #00bcd4;
+    }
+
+    .btn {
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.2s, transform 0.2s;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-primary {
+        background-color: #2196f3;
+        border-color: #2196f3;
+    }
+
+    .btn-secondary {
+        background-color: #424242;
+        border-color: #424242;
+        color: #ddd;
+    }
+
+    .btn-success {
+        background-color: #00c853;
+        border-color: #00c853;
+    }
+
+    .btn-success:hover {
+        background-color: #00e676;
+    }
+
+    .table-responsive-pay {
+        overflow-x: auto;
+        max-height: 450px;
+        overflow-y: auto;
+        background-color: #1e1e1e;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        padding: 10px;
+    }
+
+    .compact-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: #e0e0e0;
+    }
+
+    .compact-table th {
+        background-color: #222;
+        color: #fff;
+        padding: 10px;
+        font-size: 0.9em;
+        border-bottom: 2px solid #333;
+    }
+
+    .compact-table td {
+        padding: 8px;
+        font-size: 0.9em;
+        white-space: nowrap;
+        border-bottom: 1px solid #333;
+    }
+
+    .compact-table tr:hover {
+        background-color: #2a2a2a;
+    }
+
+    .alert {
+        background-color: #2e2e2e;
+        color: #f5f5f5;
+        border: 1px solid #444;
+    }
+
+    /* ======== MODAL ESCURO ======== */
+    #pagamentoModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #pagamentoModal > div {
+        background: #1e1e1e;
+        color: #e0e0e0;
+        padding: 25px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+
+    #pagamentoModal h3 {
+        color: #fff;
+    }
+
+    #pagamentoModal input,
+    #pagamentoModal select {
+        background-color: #2a2a2a;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 6px;
+        padding: 6px 10px;
+    }
+
+    #pagamentoModal input:focus,
+    #pagamentoModal select:focus {
+        border-color: #00bcd4;
+        outline: none;
+        box-shadow: 0 0 5px #00bcd4;
+    }
+
+    #pagamentoModal button {
+        background-color: #00c853;
+        color: #fff;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+    }
+
+    #pagamentoModal button:hover {
+        background-color: #00e676;
+    }
+
+</style>
+
+<h2>💰 Registrar Pagamento de Serviço</h2>
+
+<div class="filters">
+    <div class="filter-group">
+        <label for="cliente_select">Cliente:</label>
+        <select id="cliente_select" class="form-control">
+            <option value="">-- Todos os clientes --</option>
+            {% for c in clientes %}
+            <option value="{{ c.id }}" {% if c.id|string == selected_cliente_id %}selected{% endif %}>{{ c.nome }} | {{ c.cpf_cnpj }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="placa_select">Placa:</label>
+        <select id="placa_select" class="form-control">
+            <option value="">-- Todas as placas --</option>
+            {% for p in placas %}
+            <option value="{{ p }}" {% if p == selected_placa %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="data_filtro">Data:</label>
+        <input type="date" id="data_filtro" class="form-control" style="max-width: 180px;">
+    </div>
+
+    <button type="button" class="btn btn-primary" id="apply_filter_btn" style="height: 38px;">
+        <i class="fas fa-filter"></i> Aplicar Filtros
+    </button>
+
+    <button type="button" class="btn btn-secondary" onclick="limparFiltros()" style="height: 38px;">
+        Limpar
+    </button>
+</div>
+
+<hr>
+
+<h3>Serviços Pendentes:</h3>
+<div class="table-responsive-pay">
+    <table class="table table-striped compact-table" id="servicos_table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Serviço</th>
+                <th>Placa</th>
+                <th>Valor Total</th>
+                <th>Saldo Pendente</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in servicos_filtrados %}
+            <tr data-cliente="{{ s.cliente_id }}"
+                data-placa="{{ s.placa }}"
+                data-data="{{ s.data_servico.isoformat() if s.data_servico }}">
+                <td>{{ s.id }}</td>
+                <td>{{ s.data_servico.strftime('%d/%m/%Y') if s.data_servico else '' }}</td>
+                <td>{{ s.cliente }}</td>
+                <td>{{ s.tipo_servico }}</td>
+                <td>{{ s.placa }}</td>
+                <td>{{ s.valor_total | moeda }}</td>
+                <td style="font-weight: bold; color: #ff5252;">{{ s.saldo_pendente | moeda }}</td>
+                <td>
+                    <button type="button" class="btn btn-success btn-sm"
+                        onclick="selecionarServico({{ s.id }}, '{{ s.cliente }}', {{ s.saldo_pendente|float or 0 }})">
+                        Pagar
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not servicos_filtrados %}
+    <div class="alert alert-warning text-center" role="alert">
+        Nenhum serviço pendente encontrado com os filtros aplicados.
+    </div>
+    {% endif %}
+</div>
+
+<div id="pagamentoModal">
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 20px;">
+            <h3>Processar Pagamento</h3>
+            <button type="button" onclick="fecharModal()" style="background: none; border: none; font-size: 1.5em; color: #fff; cursor: pointer;">&times;</button>
+        </div>
+
+        <form method="post" action="{{ url_for('processar_pagamento') }}" id="formPagamento">
+            <input type="hidden" name="servico_id" id="servico_id">
+            <div class="form-group">
+                <label>Cliente / Saldo Pendente:</label>
+                <input type="text" id="cliente_nome" class="form-control" readonly style="font-weight: bold;">
+            </div>
+            <div class="form-group">
+                <label>Valor a Pagar (R$):</label>
+                <input type="text" name="valor_pago" id="valor_pago_input" class="form-control" placeholder="0,00" required>
+                <small class="form-text text-muted">Use vírgula para separador decimal.</small>
+            </div>
+            <div class="form-group">
+                <label>Método de Pagamento:</label>
+                <select name="metodo_pagamento" class="form-control">
+                    <option>PIX</option>
+                    <option>Dinheiro</option>
+                    <option>Cartão</option>
+                    <option>Transferência</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Data do Pagamento:</label>
+                <input type="date" name="data_pagamento" class="form-control" value="{{ today }}">
+            </div>
+            <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 15px;">
+                <i class="fas fa-check"></i> Confirmar Pagamento
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// 🔹 CÓDIGO JAVASCRIPT ORIGINAL MANTIDO SEM ALTERAÇÕES
+const placasPorCliente = {{ placas_por_cliente|tojson }};
+const todasPlacas = {{ placas|tojson }};
+const selectedPlaca = "{{ selected_placa }}";
+const selectedClienteId = "{{ selected_cliente_id }}";
+const pagamentoModal = document.getElementById('pagamentoModal');
+const clienteSelect = document.getElementById('cliente_select');
+const placaSelect = document.getElementById('placa_select');
+const applyFilterBtn = document.getElementById('apply_filter_btn');
+
+function atualizarPlacas() {
+    const clienteId = clienteSelect.value;
+    placaSelect.innerHTML = '<option value="">-- Todas as placas --</option>';
+    let placasParaDropdown = [];
+
+    if (clienteId && placasPorCliente[clienteId]) {
+        placasParaDropdown = placasPorCliente[clienteId];
+    } else {
+        placasParaDropdown = todasPlacas;
+    }
+
+    placasParaDropdown.forEach(p => {
+        if (p) {
+            const option = document.createElement('option');
+            option.value = p;
+            option.text = p;
+            if (p === selectedPlaca) {
+                option.selected = true;
+            }
+            placaSelect.appendChild(option);
+        }
+    });
+
+    if (selectedPlaca && !placasParaDropdown.includes(selectedPlaca) && clienteId) {
+        placaSelect.value = "";
+    }
+}
+
+function filtrarTabela() {
+    const clienteId = clienteSelect.value;
+    const placa = placaSelect.value;
+    const dataFiltro = document.getElementById('data_filtro').value;
+    let url = "{{ url_for('processar_pagamento') }}";
+    const params = new URLSearchParams();
+    if (clienteId) params.append('cliente_id', clienteId);
+    if (placa) params.append('placa', placa);
+    if (dataFiltro) params.append('data', dataFiltro);
+    window.location.href = url + (params.toString() ? '?' + params.toString() : '');
+}
+
+function limparFiltros() {
+    window.location.href = "{{ url_for('processar_pagamento') }}";
+}
+
+function selecionarServico(id, cliente, saldo) {
+    document.getElementById('servico_id').value = id;
+    const saldo_formatado = saldo.toFixed(2).replace('.', ',');
+    document.getElementById('cliente_nome').value = cliente + ' | Saldo pendente: R$ ' + saldo_formatado;
+    document.getElementById('valor_pago_input').value = saldo_formatado;
+    pagamentoModal.style.display = 'flex';
+}
+
+function fecharModal() {
+    pagamentoModal.style.display = 'none';
+}
+
+document.getElementById('valor_pago_input').addEventListener('blur', function() {
+    let value = this.value.replace('.', ',');
+    this.value = value;
+});
+
+clienteSelect.addEventListener('change', atualizarPlacas);
+applyFilterBtn.addEventListener('click', filtrarTabela);
+atualizarPlacas();
+
+const urlParams = new URLSearchParams(window.location.search);
+const dataFiltro = urlParams.get('data');
+if (dataFiltro) {
+    document.getElementById('data_filtro').value = dataFiltro;
+}
+</script>
+{% endblock %}

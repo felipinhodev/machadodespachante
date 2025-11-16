@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório Gerencial | Despachante Machado{% endblock %}
+
+{% block content %}
+<style>
+    .relatorio-container {
+        max-width: 1400px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #121212;
+        border-radius: 15px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+        color: #f8f9fa;
+    }
+
+    h1 {
+        color: var(--cor-primaria);
+        margin-bottom: 25px;
+        font-weight: 600;
+    }
+
+    h2 {
+        margin-top: 50px;
+        color: #ddd;
+        font-weight: 500;
+    }
+
+    /* Filtros */
+    .filtros {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 25px;
+        background-color: #1c1c1c;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+    }
+
+    .filtros div {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 220px;
+    }
+
+    .filtros label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: #ccc;
+    }
+
+    .filtros input,
+    .filtros select {
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px solid #444;
+        background-color: #181818;
+        color: #f0f0f0;
+    }
+
+    .filtros button {
+        background-color: var(--cor-primaria);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        align-self: flex-end;
+    }
+
+    .filtros button:hover {
+        background-color: var(--cor-primaria-escura);
+    }
+
+    .btn-exportar {
+        background-color: #198754;
+        color: white;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        align-self: flex-end;
+    }
+
+    .btn-exportar:hover {
+        background-color: #146c43;
+    }
+
+    /* Cards de resumo */
+    .cards-resumo {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .card {
+        background-color: #1c1c1c;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        text-align: center;
+    }
+
+    .card h3 {
+        font-size: 1.05em;
+        color: #aaa;
+        margin-bottom: 8px;
+    }
+
+    .card p {
+        font-size: 1.6em;
+        font-weight: 600;
+        color: #f8f9fa;
+    }
+
+    /* Tabelas */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #1c1c1c;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 10px;
+        box-shadow: 0 0 6px rgba(0,0,0,0.5);
+    }
+
+    thead {
+        background-color: var(--cor-primaria);
+        color: #fff;
+    }
+
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+    }
+
+    tr:hover {
+        background-color: #2a2a2a;
+    }
+</style>
+
+<div class="relatorio-container" id="area-relatorio">
+    <h1>📘 Relatório Gerencial</h1>
+
+    <!-- FILTROS -->
+    <form method="POST" class="filtros">
+    <div>
+        <label for="data_inicio">Data inicial</label>
+        <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+    </div>
+    <div>
+        <label for="data_fim">Data final</label>
+        <input type="date" id="data_fim" name="data_fim" value="{{ data_fim }}">
+    </div>
+    <div>
+        <label for="cliente_id">Cliente</label>
+        <select id="cliente_id" name="cliente_id">
+            <option value="">Todos</option>
+            {% for cliente in clientes %}
+                <option value="{{ cliente.id }}" {% if cliente.id == cliente_id %}selected{% endif %}>{{ cliente.nome }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="tipo_servico">Tipo de serviço</label>
+        <select id="tipo_servico" name="tipo_servico">
+            <option value="">Todos</option>
+            {% for tipo in tipos_servicos %}
+                <option value="{{ tipo }}" {% if tipo == tipo_servico %}selected{% endif %}>{{ tipo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <button type="submit">Aplicar Filtros</button>
+    <button type="button" id="btnGerarPDF" class="btn-exportar">Gerar PDF</button>
+</form>
+
+    <!-- CARDS DE RESUMO -->
+    <div class="cards-resumo">
+        <div class="card">
+            <h3>Total de Clientes Atendidos</h3>
+            <p>{{ total_clientes }}</p>
+        </div>
+        <div class="card">
+            <h3>Serviços Realizados</h3>
+            <p>{{ total_servicos }}</p>
+        </div>
+        <div class="card">
+            <h3>Total de Entradas</h3>
+            <p>{{ total_entradas | moeda }}</p>
+        </div>
+        <div class="card">
+            <h3>Total de Saídas</h3>
+            <p>{{ total_saidas | moeda }}</p>
+        </div>
+        <div class="card">
+            <h3>Saldo Líquido</h3>
+            <p>{{ saldo_liquido | moeda }}</p>
+        </div>
+    </div>
+
+    <!-- TABELA DE SERVIÇOS -->
+    <h2>Serviços Prestados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Tipo de Serviço</th>
+                <th>Valor Total</th>
+                <th>Valor Recebido</th>
+                <th>Saldo Pendente</th>
+                <th>Status Pagamento</th>
+                <th>Status Processo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in servicos %}
+            <tr>
+                <td>{{ s.data_servico | to_date }}</td>
+                <td>{{ s.cliente.nome }}</td>
+                <td>{{ s.tipo_servico }}</td>
+                <td>{{ s.valor_total | moeda }}</td>
+                <td>{{ s.valor_recebido | moeda }}</td>
+                <td>{{ (s.valor_total - s.valor_recebido) | moeda }}</td>
+                <td>{{ s.status_pagamento }}</td>
+                <td>{{ s.status_processo }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- TABELA DE MOVIMENTAÇÕES -->
+    <h2>Movimentações do Caixa</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Descrição</th>
+                <th>Referência</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in movimentacoes %}
+            <tr>
+                <td>{{ m.data | to_date }}</td>
+                <td>{{ m.tipo }}</td>
+                <td>{{ m.valor | moeda }}</td>
+                <td>{{ m.descricao }}</td>
+                <td>{{ m.referencia_tipo }} #{{ m.referencia_id }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- TABELA DE DESPESAS -->
+    <h2>Despesas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Categoria</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in despesas %}
+            <tr>
+                <td>{{ d.data | to_date }}</td>
+                <td>{{ d.categoria }}</td>
+                <td>{{ d.descricao }}</td>
+                <td>{{ d.valor | moeda }}</td>
+                <td>{% if d.paga %}Paga{% else %}Pendente{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Scripts para gerar PDF direto no navegador -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+document.getElementById('btnGerarPDF').addEventListener('click', function() {
+    const { jsPDF } = window.jspdf;
+    const relatorio = document.getElementById('area-relatorio');
+
+    html2canvas(relatorio, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save('relatorio_faturamento.pdf');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Cobrança</title>
+    <style>
+        .detalhes-servico {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .detalhes-servico h3 { margin-top: 0; color: #0056b3; }
+        .detalhes-servico p { margin: 5px 0; }
+        
+        form label { font-weight: bold; display: block; margin-top: 10px; }
+        form input[type="text"], form input[type="date"], form select {
+            width: 300px;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h2>💲 Registrar Cobrança para Serviço ID {{ servico.id }}</h2>
+    <p style="color: red;">⚠️ Esta ação define o valor total e o vencimento, alterando o status para **A RECEBER**.</p>
+    
+    <div class="detalhes-servico">
+        <h3>Informações do Serviço</h3>
+        <p><strong>Cliente:</strong> {{ servico.cliente }}</p>
+        <p><strong>Tipo de Serviço:</strong> {{ servico.tipo_servico }}</p>
+        <p><strong>Func. Responsável:</strong> {{ servico.funcionario_responsavel or 'N/A' }}</p>
+        <p><strong>Status do Processo:</strong> <span style="font-weight: bold; color: blue;">{{ servico.status_processo }}</span></p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul style="list-style-type: none; padding: 10px; border: 1px solid #ccc; background-color: #f0f0f0;">
+            {% for category, message in messages %}
+                <li style="color: {% if category == 'error' %}red{% elif category == 'success' %}green{% else %}black{% endif %};">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        
+        <label for="valor_total">Valor Total da Cobrança (R$): <span style="color: red;">*</span></label>
+        <input type="text" id="valor_total" name="valor_total" 
+               placeholder="Ex: 1500.00" required 
+               value="{{ '%.2f'|format(servico.valor_total) if servico.valor_total > 0 else '' }}"><br>
+        
+        <label for="data_vencimento">Data de Vencimento: <span style="color: red;">*</span></label>
+        <input type="date" id="data_vencimento" name="data_vencimento" 
+               value="{{ servico.data_vencimento or '' }}" required><br>
+
+        <label for="forma_pagamento">Forma de Pagamento (Prevista):</label>
+        <select id="forma_pagamento" name="forma_pagamento">
+            <option value="BOLETO" {% if servico.forma_pagamento == 'BOLETO' %}selected{% endif %}>Boleto</option>
+            <option value="PIX" {% if servico.forma_pagamento == 'PIX' %}selected{% endif %}>PIX</option>
+            <option value="CARTAO" {% if servico.forma_pagamento == 'CARTAO' %}selected{% endif %}>Cartão</option>
+            <option value="DINHEIRO" {% if servico.forma_pagamento == 'DINHEIRO' %}selected{% endif %}>Dinheiro</option>
+            <option value="TRANSFERENCIA" {% if servico.forma_pagamento == 'TRANSFERENCIA' %}selected{% endif %}>Transferência</option>
+        </select><br><br>
+
+        <input type="submit" value="Registrar Cobrança e Definir A RECEBER" 
+               style="padding: 10px 15px; background-color: #0056b3; color: white; border: none; border-radius: 5px; cursor: pointer;">
+    </form>
+    
+    <p><a href="{{ url_for('visualizar_servicos') }}">🔙 Voltar para a Lista de Serviços</a></p>
+</body>
+</html>

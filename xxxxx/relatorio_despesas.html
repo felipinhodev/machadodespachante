@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Despesas{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    h2, h4 {
+        color: #ffffff;
+    }
+
+    .card {
+        background-color: #1e1e1e;
+        border: 1px solid #2e2e2e;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+    }
+
+    .card-header {
+        background-color: #2c2c2c;
+        border-bottom: 1px solid #3c3c3c;
+        font-weight: 600;
+    }
+
+    .btn {
+        border-radius: 8px;
+        padding: 10px 18px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+    }
+    .btn-secondary:hover {
+        background-color: #565e64;
+    }
+
+    .bg-danger {
+        background: linear-gradient(135deg, #b31217, #e52d27);
+    }
+
+    .bg-light {
+        background-color: #1b1b1b !important;
+        border: 1px solid #2a2a2a !important;
+        color: #ccc;
+    }
+
+    label {
+        color: #ccc;
+        font-weight: 500;
+    }
+
+    input[type="date"],
+    select {
+        background-color: #222;
+        color: #e0e0e0;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 8px;
+    }
+
+    /* --- Novos estilos para filtros horizontais --- */
+    .filters-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .filters-row .filter-group {
+        flex: 1 1 200px; /* cada filtro ocupa ao menos 200px e cresce se houver espaço */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table {
+        color: #e0e0e0;
+        border-color: #333;
+        background-color: #1b1b1b;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .table thead {
+        background-color: #272727;
+        color: #ffffff;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #1f1f1f;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #2c2c2c;
+    }
+
+    .badge.bg-danger {
+        background-color: #e74c3c !important;
+    }
+
+    hr {
+        border-top: 1px solid #333;
+    }
+
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>➖ Relatório de Despesas</h2>
+    <a href="{{ url_for('visualizar_caixa') }}" class="btn btn-secondary">
+        🔙 Voltar para o Caixa
+    </a>
+</div>
+
+<div class="card text-white bg-danger mb-4">
+    <div class="card-header">Resumo do Período Filtrado</div>
+    <div class="card-body">
+        <h5 class="card-title">Total de Despesas:</h5>
+        <p class="card-text fs-3 fw-bold">R$ {{ total_despesas | moeda }}</p>
+    </div>
+</div>
+
+<h4 class="mb-3">Filtros Aplicados</h4>
+<form method="GET" action="{{ url_for('relatorio_despesas') }}" class="mb-5 p-3 border rounded bg-light">
+    <div class="filters-row">
+
+        <div class="filter-group">
+            <label for="data_inicio" class="form-label">Data Início:</label>
+            <input type="date" class="form-control" id="data_inicio" name="data_inicio"
+                   value="{{ selected_data_inicio or '' }}">
+        </div>
+
+        <div class="filter-group">
+            <label for="data_fim" class="form-label">Data Fim:</label>
+            <input type="date" class="form-control" id="data_fim" name="data_fim"
+                   value="{{ selected_data_fim or '' }}">
+        </div>
+
+        <div class="filter-group">
+            <label for="categoria" class="form-label">Categoria:</label>
+            <select class="form-select" id="categoria" name="categoria">
+                <option value="">Todas as Categorias</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat }}" {% if cat == selected_categoria %}selected{% endif %}>
+                        {{ cat }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Aplicar Filtros</button>
+        </div>
+
+    </div>
+</form>
+
+<hr>
+
+<h4>Lista de Despesas</h4>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th class="text-end">Valor (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for despesa in despesas %}
+            <tr>
+                <td>{{ despesa.id }}</td>
+                <td>{{ despesa.data | to_date }}</td>
+                <td>{{ despesa.descricao }}</td>
+                <td><span class="badge bg-danger">{{ despesa.categoria }}</span></td>
+                <td class="text-end fw-bold">R$ {{ despesa.valor | moeda }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    Nenhuma despesa encontrada para os filtros aplicados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

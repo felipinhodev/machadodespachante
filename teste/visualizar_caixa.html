@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Visualizar Caixa e Fluxo Financeiro{% endblock %}
+
+{% block content %}
+<div class="content-container">
+
+    <div class="finance-header">
+        <h2>💵 Fluxo de Caixa Diário / Mês</h2>
+        <div class="action-buttons">
+            <a href="{{ url_for('index') }}">🔙 Menu Principal</a>
+            <a href="{{ url_for('despesa_form') }}">➖ Registrar Despesa Avulsa</a>
+        </div>
+    </div>
+
+    {% set saldo_geral = total_entradas - total_despesas %}
+    {% set saldo_class = 'saldo-positivo' if saldo_geral > 0 else ('saldo-negativo' if saldo_geral < 0 else 'saldo-zero') %}
+
+    <div class="saldo-box">
+        <h3>Saldo Atual (Entradas de Serviços + Despesas Avulsas)</h3>
+        <span class="saldo-value {{ saldo_class }}">{{ saldo_geral | moeda }}</span>
+        <p style="margin-top: 10px; font-size: 0.9em;">
+            Total Entradas: <span class="entrada-value">{{ total_entradas | moeda }}</span> |
+            Total Despesas: <span class="saida-value">{{ total_despesas | moeda }}</span>
+        </p>
+    </div>
+
+    <!-- Filtro de Datas -->
+    <form method="get" class="filter-form">
+        <label for="start_date">Filtrar por Data:</label>
+        De: <input type="date" id="start_date" name="start_date" value="{{ start_date if start_date else '' }}">
+        Até: <input type="date" id="end_date" name="end_date" value="{{ end_date if end_date else '' }}">
+        <input type="submit" value="Aplicar Filtro" class="btn btn-primary">
+        <a href="{{ url_for('visualizar_caixa') }}" class="back-link">Limpar Filtro</a>
+    </form>
+
+    {% if extrato %}
+    <div class="table-responsive">
+        <table class="extrato-table table-hover">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Tipo</th>
+                    <th>Descrição / Serviço</th>
+                    <th>Valor (R$)</th>
+                    <th>Categoria</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in extrato %}
+                {% set is_entrada = item.tipo == 'ENTRADA' %}
+                <tr class="{{ 'entrada-row' if is_entrada else 'saida-row' }}">
+                    <td>{{ item.data | to_date }}</td>
+                    <td>{{ item.tipo }}</td>
+                    <td>{{ item.descricao }}</td>
+                    <td class="valor-cell {{ 'entrada-value' if is_entrada else 'saida-value' }}">
+                        {% if not is_entrada %}-{% endif %}{{ item.valor | moeda }}
+                    </td>
+                    <td>{{ item.categoria }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p style="margin-top: 30px;">Nenhuma movimentação encontrada para o período selecionado.</p>
+    {% endif %}
+
+</div>
+
+<style>
+.content-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    background: transparent;
+    padding: 20px;
+}
+
+.finance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+.action-buttons a {
+    margin-left: 10px;
+    background-color: var(--cor-secundaria);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.action-buttons a:last-child {
+    background-color: var(--cor-erro);
+}
+
+.action-buttons a:hover {
+    opacity: 0.9;
+}
+
+/* Saldo */
+.saldo-box {
+    background-color: transparent; /* Transparente */
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.saldo-box h3 {
+    margin-top: 0;
+    color: var(--cor-primaria);
+    font-size: 1.1em;
+}
+
+.saldo-value {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.saldo-positivo { color: var(--cor-secundaria); }
+.saldo-negativo { color: var(--cor-erro); }
+.saldo-zero { color: var(--cor-primaria); }
+
+/* Filtro de datas */
+.filter-form {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    background: transparent;
+}
+
+.filter-form input[type="date"] {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.filter-form input[type="submit"] {
+    padding: 6px 15px;
+    border-radius: 6px;
+    border: none;
+    background-color: var(--cor-primaria);
+    color: #fff;
+    cursor: pointer;
+}
+
+.filter-form .back-link {
+    text-decoration: none;
+    color: var(--cor-primaria);
+    font-weight: 500;
+}
+
+.filter-form .back-link:hover {
+    text-decoration: underline;
+}
+
+/* Tabela */
+.table-responsive {
+    overflow-x: auto;
+    max-height: 600px;
+}
+
+.extrato-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.extrato-table th, .extrato-table td {
+    border: 1px solid #e9ecef;
+    padding: 10px;
+    text-align: left;
+    font-size: 0.9em;
+    background-color: transparent;
+    color: var(--cor-texto);
+}
+
+.extrato-table th {
+    font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,0.03); /* Hover neutro transparente */
+}
+
+/* Cores das linhas */
+.entrada-row { background-color: rgba(0, 255, 0, 0.05); } /* Verde claro transparente */
+.saida-row { background-color: rgba(255, 0, 0, 0.05); } /* Vermelho claro transparente */
+
+.entrada-value { color: var(--cor-secundaria); font-weight: bold; }
+.saida-value { color: var(--cor-erro); font-weight: bold; }
+
+.valor-cell { text-align: right; }
+
+</style>
+{% endblock %}

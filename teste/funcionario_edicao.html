@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Funcionário</title>
+</head>
+<body>
+    <h2>✏️ Editar Dados de RH: {{ funcionario.nome }}</h2>
+    
+    <form method="post">
+        
+        <label for="nome">Nome Completo:</label><br>
+        <input type="text" id="nome" name="nome" value="{{ funcionario.nome }}" required><br><br>
+        
+        <label for="cargo">Cargo:</label><br>
+        <input type="text" id="cargo" name="cargo" value="{{ funcionario.cargo }}" required><br><br>
+
+        <label for="salario_mensal">Salário Mensal (R$):</label><br>
+        <input type="text" id="salario_mensal" name="salario_mensal" 
+               value="{{ "%.2f"|format(funcionario.salario_mensal or 0.00) }}" required><br><br>
+        
+        <input type="submit" value="Salvar Alterações de RH">
+    </form>
+    
+    <p><a href="{{ url_for('funcionarios_lista') }}">🔙 Voltar para a Lista de Funcionários</a></p>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Módulo de Fluxo de Caixa</title>
+    <style>
+        h2 { color: #0056b3; }
+        .dashboard {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .dashboard-item {
+            text-align: center;
+            padding: 10px;
+            flex-grow: 1;
+        }
+        .entrada { color: green; font-weight: bold; }
+        .saida { color: red; font-weight: bold; }
+        .saldo-positivo { color: green; }
+        .saldo-negativo { color: red; }
+        
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #e6e6e6; }
+        .acoes a { margin-right: 15px; }
+    </style>
+</head>
+<body>
+    <h2>💰 Módulo de Fluxo de Caixa</h2>
+    <p>Visão completa de todas as movimentações financeiras. (Apenas ADMIN/MASTER)</p>
+
+    <div class="dashboard">
+        <div class="dashboard-item">
+            <h3>Total de ENTRADAS (Mês)</h3>
+            <p class="entrada">R$ {{ "%.2f"|format(total_entradas or 0) }}</p>
+        </div>
+        <div class="dashboard-item">
+            <h3>Total de SAÍDAS (Mês)</h3>
+            <p class="saida">R$ {{ "%.2f"|format(total_saidas or 0) }}</p>
+        </div>
+        <div class="dashboard-item" style="border-left: 1px solid #ddd;">
+            <h3>SALDO Atual</h3>
+            <p class="{% if saldo >= 0 %}saldo-positivo{% else %}saldo-negativo{% endif %}">
+                R$ {{ "%.2f"|format(saldo or 0) }}
+            </p>
+        </div>
+    </div>
+    
+    <p class="acoes">
+        <a href="{{ url_for('visualizar_servicos') }}">🔙 Voltar para Serviços</a> |
+        <a href="{{ url_for('registrar_despesa') }}" style="color: red;">➖ Registrar Nova Despesa</a> |
+        <a href="{{ url_for('relatorio_faturamento') }}" style="color: green;">📊 Relatório de Faturamento</a> |
+        <a href="{{ url_for('relatorio_areceber') }}" style="color: orange;">📝 Relatório de A Receber (Clientes)</a>
+    </p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Valor (R$)</th>
+                <th>Descrição</th>
+                <th>Serviço ID</th>
+                <th>Cliente</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movimento in caixa %}
+            <tr class="movimento-{{ movimento.tipo_movimento.lower() }}">
+                <td>{{ movimento.data_movimento }}</td>
+                <td class="{% if movimento.tipo_movimento == 'ENTRADA' %}entrada{% else %}saida{% endif %}">
+                    {{ movimento.tipo_movimento }}
+                </td>
+                <td>R$ {{ "%.2f"|format(movimento.valor) }}</td>
+                <td>{{ movimento.descricao }}</td>
+                <td>
+                    {% if movimento.servico_id %}
+                        <a href="{{ url_for('atualizar_status_servico', servico_id=movimento.servico_id) }}">
+                            {{ movimento.servico_id }}
+                        </a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ movimento.cliente or 'N/A' }}</td>
+                <td>
+                    <a href="{{ url_for('editar_movimento_caixa', movimento_id=movimento.id) }}" style="color: blue;">Editar</a> |
+                    <a href="{{ url_for('excluir_movimento_caixa', movimento_id=movimento.id) }}" style="color: red;">Excluir</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center;">Nenhuma movimentação registrada no caixa.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
